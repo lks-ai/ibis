@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI-Driven Interface with Enhanced VAD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Basic styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 50px;
+            overflow: auto;
+        }
+        #message-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            display: flex;
+            border-top: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            font-size: 16px;
+        }
+        #microphone-button {
+            width: 50px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+        #microphone-button[disabled] {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #send-button {
+            width: 80px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
+        }
+        #send-button[disabled] {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #spinner {
+            position: absolute;
+            top: 14px;
+            right: 30px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid #007BFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .highlight-overlay {
+            position: absolute;
+            border: 2px solid #00FF00;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+    <style id="core-styles"></style>
+</head>
+<body>
+
+<div id="canvas"></div>
+
+<div id="message-bar">
+    <input type="text" id="message-input" placeholder="Type your message here...">
+    <button id="microphone-button">🎤</button>
+    <button id="send-button">Send</button>
+    <div id="spinner"></div>
+</div>
+
+<!-- API Key Modal -->
+<div id="api-key-modal" style="display: none;">
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div style="position: relative; width: 80%; max-width: 400px; margin: 100px auto; background: white; padding: 20px; border-radius: 8px;">
+            <h2>Enter Your OpenAI API Key</h2>
+            <p>You can obtain your API key from the <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI Dashboard</a>.</p>
+            <input type="text" id="api-key-input" style="width: 100%; padding: 10px; margin-bottom: 20px;" placeholder="sk-...">
+            <button id="save-api-key-button" style="padding: 10px 20px;">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Check for API Key in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    let apiKey = urlParams.get('apiKey') || '';
+
+    // DOM Elements
+    const canvas = document.getElementById('canvas');
+    const messageBar = document.getElementById('message-bar');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const microphoneButton = document.getElementById('microphone-button');
+    const spinner = document.getElementById('spinner');
+    const apiKeyModal = document.getElementById('api-key-modal');
+    const apiKeyInput = document.getElementById('api-key-input');
+    const saveApiKeyButton = document.getElementById('save-api-key-button');
+    const styleElement = document.getElementById('core-styles');
+
+    let selectedElement = null;
+    let messageHistory = [];
+    let elementMap = {}; // Map of element IDs to their descriptions and code
+    let elementEmbeddings = {}; // Map of element IDs to their embeddings
+
+    // Hands-Free Mode Variables
+    let isHandsFree = false;
+    let isListening = false;
+    let latestUtteranceDiv = null;
+    let stream = null;
+    let audioContext = null;
+    let source = null;
+    let analyser = null;
+    let dataArray = null;
+    let mediaRecorder = null;
+
+    // Show API Key Modal if apiKey is not set
+    if (!apiKey) {
+        apiKeyModal.style.display = 'block';
+    }
+
+    // Save API Key
+    saveApiKeyButton.addEventListener('click', () => {
+        apiKey = apiKeyInput.value.trim();
+        if (apiKey) {
+            apiKeyModal.style.display = 'none';
+        }
+    });
+
+    // Element Selection Overlay
+    const highlightOverlay = document.createElement('div');
+    highlightOverlay.className = 'highlight-overlay';
+    document.body.appendChild(highlightOverlay);
+
+    // Select and Deselect Elements
+    canvas.addEventListener('click', (event) => {
+        if (event.target !== canvas && !messageBar.contains(event.target)) {
+            if (selectedElement) {
+                // Remove previous highlight
+                highlightOverlay.style.display = 'none';
+            }
+            selectedElement = event.target;
+
+            // Position the highlight overlay over the selected element
+            const rect = selectedElement.getBoundingClientRect();
+            highlightOverlay.style.width = rect.width + 'px';
+            highlightOverlay.style.height = rect.height + 'px';
+            highlightOverlay.style.left = rect.left + 'px';
+            highlightOverlay.style.top = rect.top + 'px';
+            highlightOverlay.style.display = 'block';
+
+            console.log('Selected Element:', selectedElement);
+        } else {
+            if (selectedElement) {
+                highlightOverlay.style.display = 'none';
+                selectedElement = null;
+            }
+        }
+    });
+
+    // Send Message
+    sendButton.addEventListener('click', () => sendMessage());
+    messageInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    // Microphone Button
+    microphoneButton.addEventListener('click', async () => {
+        isHandsFree = !isHandsFree;
+        updateUIForHandsFreeMode();
+        if (isHandsFree) {
+            startHandsFreeMode();
+        } else {
+            stopHandsFreeMode();
+        }
+    });
+
+    function updateUIForHandsFreeMode() {
+        if (isHandsFree) {
+            // Change microphone button appearance to indicate hands-free mode
+            microphoneButton.textContent = '🛑';
+            microphoneButton.title = 'Stop Hands-Free Mode';
+
+            // Modify message bar to show latest utterance and a button to switch back
+            messageInput.style.display = 'none';
+            sendButton.style.display = 'none';
+
+            if (!latestUtteranceDiv) {
+                latestUtteranceDiv = document.createElement('div');
+                latestUtteranceDiv.id = 'latest-utterance';
+                latestUtteranceDiv.style.flex = '1';
+                latestUtteranceDiv.style.padding = '10px';
+                latestUtteranceDiv.style.fontSize = '16px';
+                latestUtteranceDiv.textContent = 'Listening...';
+                messageBar.insertBefore(latestUtteranceDiv, microphoneButton.nextSibling);
+            }
+
+        } else {
+            // Change microphone button back to normal
+            microphoneButton.textContent = '🎤';
+            microphoneButton.title = 'Start Hands-Free Mode';
+
+            // Restore message input and send button
+            messageInput.style.display = '';
+            sendButton.style.display = '';
+
+            // Remove latest utterance display
+            if (latestUtteranceDiv) {
+                latestUtteranceDiv.remove();
+                latestUtteranceDiv = null;
+            }
+        }
+    }
+
+    async function startHandsFreeMode() {
+        isListening = true;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            source = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+            source.connect(analyser);
+            dataArray = new Float32Array(analyser.fftSize);
+            listenContinuously();
+        } catch (error) {
+            console.error('Microphone Access Error:', error);
+            alert('An error occurred while accessing the microphone.');
+            isListening = false;
+            isHandsFree = false;
+            updateUIForHandsFreeMode();
+        }
+    }
+
+    function stopHandsFreeMode() {
+        isListening = false;
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+    }
+
+    async function listenContinuously() {
+        while (isListening) {
+            try {
+                const transcription = await transcribeSpeech();
+                if (!isListening) break; // Check if hands-free mode was turned off during transcription
+
+                // Check if transcription is valid (e.g., longer than 1 character)
+                if (transcription && transcription.length > 1) {
+                    latestUtteranceDiv.textContent = 'You: ' + transcription;
+                    const result = await sendMessage(transcription);
+                    latestUtteranceDiv.textContent += '\nAssistant: ' + (result.assistantComment || '[No comment]');
+                } else {
+                    latestUtteranceDiv.textContent = 'Listening...';
+                }
+            } catch (error) {
+                console.error('Transcription Error:', error);
+                alert('An error occurred during speech transcription.');
+                break;
+            }
+        }
+    }
+
+    async function sendMessage(userMessageInput) {
+        const userMessage = userMessageInput ? userMessageInput.trim() : messageInput.value.trim();
+        if (!userMessage || !apiKey) return;
+
+        sendButton.disabled = true;
+        spinner.style.display = 'block';
+
+        // Add user message to history
+        const userTimestamp = new Date().toISOString();
+        messageHistory.push({
+            role: 'user',
+            content: userMessage,
+            code: null,
+            comment: null,
+            timestamp: userTimestamp
+        });
+        if (messageHistory.length > 24) {
+            messageHistory.shift();
+        }
+
+        console.log('User Message:', userMessage);
+
+        // Find relevant elements based on user message
+        let relevantElements = [];
+        if (Object.keys(elementMap).length > 0) {
+            const embedding = await getEmbedding(userMessage);
+            let similarities = [];
+            for (let id in elementEmbeddings) {
+                const sim = cosineSimilarity(embedding, elementEmbeddings[id]);
+                similarities.push({ id, similarity: sim });
+            }
+            similarities.sort((a, b) => b.similarity - a.similarity);
+            // Get top 3 relevant elements
+            relevantElements = similarities.slice(0, 3).map(s => ({
+                id: s.id,
+                description: elementMap[s.id].description,
+                code: elementMap[s.id].code,
+                similarity: s.similarity
+            }));
+        }
+
+        // Load existing page content
+        let pageContent = document.querySelector('#canvas').innerHTML;
+
+        // Prepare System Prompt
+        let systemPrompt = `
+## Identity
+You are an HTML and DOM manipulation expert tasked with modifying elements on the page.
+
+## Task Description
+Respond to the user's request by providing JavaScript code that manipulates the DOM to achieve the desired outcome. Ensure that your code is safe and does not contain any malicious content.
+
+### Current Page Content
+\`\`\`html
+${pageContent}
+\`\`\`
+
+## Recent Message History
+${messageHistory.slice(-6).map(msg => `**${msg.role}**: ${msg.content}`).join('\n')}
+
+`;
+
+        if (relevantElements.length > 0 || selectedElement) {
+            systemPrompt += `### Relevant Elements\n`;
+            if (selectedElement && selectedElement.id && elementMap[selectedElement.id]) {
+                systemPrompt += `Focused Element ID: ${selectedElement.id}\nDescription: ${elementMap[selectedElement.id].description}\nCode:\n\`\`\`javascript\n${elementMap[selectedElement.id].code}\n\`\`\`\n`;
+            } else if (selectedElement) {
+                systemPrompt += `Focused Element ID: ${selectedElement.id}\nDescription: (No description available)\n`;
+            }
+            for (let elem of relevantElements) {
+                if (!selectedElement || elem.id !== selectedElement.id) {
+                    systemPrompt += `Element ID: ${elem.id}\nDescription: ${elem.description}\nCode:\n\`\`\`javascript\n${elem.code}\n\`\`\`\n`;
+                }
+            }
+        }
+
+        systemPrompt += `
+## Instructions
+
+### Important Global JavaScript Variables
+The following variables are already declared:
+- canvas: The main div that holds the page content.
+- apiKey: Holds the OpenAI API key if you need to use generative AI functionalities.
+- styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
+
+### Commenting Instructions
+- If what the user is saying doesn't seem to have anything to do with editing the page you may respond to them as a comment
+- If you comment, try to give suggestions for enhancing their experience
+- If you engage in small talk, it should be brief and light
+- Comments should be concise and informative
+
+### Coding Instructions
+- Use only standard JavaScript and DOM APIs.
+- External libraries may be used, but stick to known CDNs.
+- Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
+- Do not include any explanations or additional text outside the code block.
+- If modifying an existing element, reference it by its ID.
+- Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
+- Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
+- Never clear the entire body, only the content within the canvas element
+- If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content.
+`;
+
+        // Prepare API Request
+        const requestBody = {
+            model: 'gpt-4o',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userMessage }
+            ]
+        };
+        console.log('System Prompt:', systemPrompt);
+
+        // Call OpenAI API
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+            const data = await response.json();
+
+            const assistantMessage = data.choices[0].message.content;
+            console.log('Assistant Response:', assistantMessage);
+
+            let code = '';
+            let assistantComment = '';
+
+            // Extract JavaScript code from the assistant's response
+            const codeMatch = assistantMessage.match(/```javascript\n([\s\S]*?)\n```/);
+            if (codeMatch && codeMatch[1]) {
+                code = codeMatch[1];
+
+                // Extract any comments from the code (e.g., at the top of the code block)
+                const commentMatch = code.match(/\/\*([\s\S]*?)\*\//);
+                if (commentMatch && commentMatch[1]) {
+                    assistantComment = commentMatch[1].trim();
+                }
+
+                // Create a new script element and execute the code
+                const script = document.createElement('script');
+                script.textContent = code;
+                document.body.appendChild(script);
+                document.body.removeChild(script);
+
+                // If the code creates or modifies elements, store their descriptions and code
+                const idMatch = code.match(/\/\/\s*Element ID:\s*(.+)/);
+                const descMatch = code.match(/\/\/\s*Description:\s*(.+)/);
+                if (idMatch && descMatch) {
+                    const elementId = idMatch[1].trim();
+                    const description = descMatch[1].trim();
+                    elementMap[elementId] = {
+                        description: description,
+                        code: code
+                    };
+                    // Get embedding of the description
+                    const descEmbedding = await getEmbedding(description);
+                    elementEmbeddings[elementId] = descEmbedding;
+                }
+            }
+
+            // Add assistant message to history
+            const assistantTimestamp = new Date().toISOString();
+            messageHistory.push({
+                role: 'assistant',
+                content: assistantMessage,
+                code: code,
+                comment: assistantComment,
+                timestamp: assistantTimestamp
+            });
+            if (messageHistory.length > 24) {
+                messageHistory.shift();
+            }
+
+            if (!isHandsFree) {
+                messageInput.value = '';
+            }
+            sendButton.disabled = false;
+            spinner.style.display = 'none';
+
+            return { assistantComment };
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while communicating with the OpenAI API.');
+            sendButton.disabled = false;
+            spinner.style.display = 'none';
+        }
+    }
+
+    // Helper functions
+
+    // Cosine similarity between two vectors
+    function cosineSimilarity(a, b) {
+        let dotProduct = 0.0;
+        let normA = 0.0;
+        let normB = 0.0;
+        for (let i = 0; i < a.length; i++) {
+            dotProduct += a[i] * b[i];
+            normA += a[i] * a[i];
+            normB += b[i] * b[i];
+        }
+        return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    // Get embedding for a text using OpenAI Embeddings API
+    async function getEmbedding(text) {
+        const response = await fetch('https://api.openai.com/v1/embeddings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                input: text,
+                model: 'text-embedding-ada-002'
+            })
+        });
+        const data = await response.json();
+        return data.data[0].embedding;
+    }
+
+    // Function to transcribe speech with improved VAD
+    async function transcribeSpeech() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Function to calculate the audio volume
+                function getVolume() {
+                    analyser.getFloatTimeDomainData(dataArray);
+                    let sum = 0.0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i] * dataArray[i];
+                    }
+                    const rms = Math.sqrt(sum / dataArray.length);
+                    return rms;
+                }
+
+                // VAD parameters
+                const silenceThreshold = 0.01; // Volume below which is considered silence
+                const speechThreshold = 0.02;  // Volume above which is considered speech
+                const silenceDuration = 1500;   // Duration (ms) of silence before stopping
+                const speechDuration = 300;     // Duration (ms) of speech before starting
+                let silenceStart = null;
+                let speechStart = null;
+                let recording = false;
+
+                const checkInterval = 100; // Interval (ms) to check for silence/speech
+
+                // Buffers for audio chunks
+                let chunks = [];
+
+                // Function to stop recording
+                function stopRecording() {
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                }
+
+                // Function to check for speech and silence
+                function checkAudio() {
+                    const volume = getVolume();
+                    // console.log('Volume:', volume);
+
+                    if (!recording) {
+                        // Waiting to start recording
+                        if (volume > speechThreshold) {
+                            if (speechStart === null) {
+                                speechStart = Date.now();
+                            } else if (Date.now() - speechStart > speechDuration) {
+                                // Speech detected long enough, start recording
+                                startRecording();
+                            }
+                        } else {
+                            speechStart = null;
+                        }
+                    } else {
+                        // Currently recording
+                        if (volume < silenceThreshold) {
+                            if (silenceStart === null) {
+                                silenceStart = Date.now();
+                            } else if (Date.now() - silenceStart > silenceDuration) {
+                                // Silence detected long enough, stop recording
+                                stopRecording();
+                            }
+                        } else {
+                            silenceStart = null;
+                        }
+                    }
+                }
+
+                // Function to start recording
+                function startRecording() {
+                    recording = true;
+                    speechStart = null;
+                    chunks = [];
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                    mediaRecorder.ondataavailable = e => {
+                        if (e.data.size > 0) {
+                            chunks.push(e.data);
+                        }
+                    };
+                    mediaRecorder.onstop = async () => {
+                        clearInterval(intervalId);
+                        silenceStart = null;
+                        recording = false;
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+
+                        // Check if audio duration is longer than minimum threshold
+                        const duration = await getAudioDuration(blob);
+                        if (duration >= 2.0) { // Minimum duration in seconds
+                            try {
+                                const transcription = await sendToWhisper(blob);
+                                resolve(transcription);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        } else {
+                            // Ignore short recordings
+                            resolve('');
+                        }
+                    };
+                    mediaRecorder.start();
+                }
+
+                // Start checking for audio levels at regular intervals
+                const intervalId = setInterval(checkAudio, checkInterval);
+
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    // Function to get audio duration
+    async function getAudioDuration(blob) {
+        return new Promise((resolve) => {
+            const tempAudio = document.createElement('audio');
+            tempAudio.src = URL.createObjectURL(blob);
+            tempAudio.addEventListener('loadedmetadata', () => {
+                resolve(tempAudio.duration);
+            });
+        });
+    }
+
+    // Function to send the audio blob to OpenAI's Whisper API
+    async function sendToWhisper(blob) {
+        const formData = new FormData();
+        formData.append('file', blob, 'audio.webm');
+        formData.append('model', 'whisper-1');
+
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.text;
+    }
+</script>
+
+</body>
+</html>
