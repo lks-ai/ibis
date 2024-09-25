@@ -92,9 +92,14 @@
 <div id="canvas"></div>
 
 <div id="message-bar">
-    <input type="text" id="message-input" placeholder="Type your message here...">
-    <button id="microphone-button">🎤</button>
-    <button id="send-button">Send</button>
+    <input type="text" id="message-input" placeholder="Ask it to make you something...">
+    <button id="microphone-button" title="Hands-Free Mode">🎤</button>
+    <button id="send-button" title="Send">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="24" viewBox="0 0 372 220" style="shape-rendering:geometricPrecision;text-rendering:geometricPrecision;image-rendering:optimizeQuality;fill-rule:evenodd;clip-rule:evenodd" fill="currentColor">
+        <path style="opacity:1" d="M-.5 188.5v-1a5114.883 5114.883 0 0 0 129.5-11l1.5-1c-5.379-17.652-8.045-35.652-8-54 17.903-.382 35.903-.382 54 0 .543-.06.876-.393 1-1-.825-.886-1.825-1.219-3-1a1003.579 1003.579 0 0 1-53.5-11 239.714 239.714 0 0 1 4.5-44 684.163 684.163 0 0 1 49 27.5c1.902 1.301 3.902 1.968 6 2l-46-38c-1.727-1.39-3.061-3.056-4-5 3.769-10.377 9.436-19.544 17-27.5a3180.312 3180.312 0 0 1 46.5 48c-1.332-2.98-2.999-5.98-5-9A3607.354 3607.354 0 0 1 154.5 17c8.396-7.116 17.896-12.283 28.5-15.5a2363.505 2363.505 0 0 1 35.5 96c-10.341 18.196-13.507 37.53-9.5 58 7.862 18.285 21.862 27.952 42 29 6.757-.282 13.59-1.115 20.5-2.5l24-8a42.479 42.479 0 0 1 13 0 14.587 14.587 0 0 1 6 4c12.596 1.317 24.596 4.65 36 10 8.401 4.04 13.234 10.54 14.5 19.5-11.297-10.726-24.797-16.059-40.5-16a2744.471 2744.471 0 0 0-101 10.5 1809.795 1809.795 0 0 0-41 9c-21.557 2.755-41.723-1.412-60.5-12.5a129.804 129.804 0 0 0-20.5-4.5 2176.774 2176.774 0 0 0-102-5.5Z"/>
+        <path style="opacity:.941" d="M174.5 119.5c1.175-.219 2.175.114 3 1-.124.607-.457.94-1 1l-2-2Z"/>
+      </svg>
+    </button>
     <div id="spinner"></div>
 </div>
 
@@ -397,11 +402,12 @@ The following variables are already declared:
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
 - Do not include any explanations or additional text outside the code block.
 - If modifying an existing element, reference it by its ID.
+- Avoid duplicating content.
 - Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
 - Never clear the entire body, only the content within the canvas element
-- If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content.
-- Any elements you generate should have a unique id
+- If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has it's own unique id.
+- Any elements you generate should have a unique id.
 `;
 
         // Prepare API Request
