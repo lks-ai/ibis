@@ -111,7 +111,8 @@
             <h2>Enter Your OpenAI API Key</h2>
             <p>You can obtain your API key from the <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI Dashboard</a>.</p>
             <input type="text" id="api-key-input" style="width: 100%; padding: 10px; margin-bottom: 20px;" placeholder="sk-...">
-            <button id="save-api-key-button" style="padding: 10px 20px;">Save</button>
+            <p><b><small>Ibis only ever calls OpenAI and runs as a standalone HTML app.</small></b></p>
+            <button id="save-api-key-button" style="padding: 10px 20px;">Begin</button>
         </div>
     </div>
 </div>
@@ -137,6 +138,9 @@
     let messageHistory = [];
     let elementMap = {}; // Map of element IDs to their descriptions and code
     let elementEmbeddings = {}; // Map of element IDs to their embeddings
+    
+    // Directives
+    let directives = null;
 
     // Hands-Free Mode Variables
     let isHandsFree = false;
@@ -385,11 +389,15 @@ ${messageHistory.slice(-6).map(msg => `**${msg.role}**: ${msg.content}`).join('\
         systemPrompt += `
 ## Instructions
 
+### Directives
+${directives}
+
 ### Important Global JavaScript Variables
 The following variables are already declared:
-- canvas: The main div that holds the page content.
+- canvas: The main div that holds the page content. This is what the user means by the page or content because this is what they are perceiving rather than the whole HTML of the page.
 - apiKey: Holds the OpenAI API key if you need to use generative AI functionalities.
 - styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
+- directives: This is a string which holds the contents of the Directives section representing how you should interperet what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like.
 
 ### Commenting Instructions
 - If what the user is saying doesn't seem to have anything to do with editing the page you may respond to them as a comment
@@ -400,15 +408,18 @@ The following variables are already declared:
 ### Coding Instructions
 - Use only standard JavaScript and DOM APIs.
 - External libraries may be used, but stick to known CDNs.
+- If the user is asking you to change your directives, goals or the way you interpret what they say, change the directives variable to reflect those new interperative goals for how you manipulate the DOM.
+- Think carefully before deciding to write the code to change the directives variable string because it will affect how you interpret everything here and change the modality of user speech, thus their experience.
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
-- Do not include any explanations or additional text outside the code block.
-- If modifying an existing element, reference it by its ID.
-- Avoid duplicating content.
+- If the user asks to download or save the page they mean a copy of the innerHTML of the div#canvas element with it's own head and unique title elements, plus any javascript and style script needed to interact with it. Think of it as asking to download a self contained app or page.
+- Any elements you generate should have a unique id.
+- If modifying an existing element, reference it by its id.
+- Avoid duplicating content by properly identifying content the user has already created and alter it.
+- Avoid dumping strings into innerHTML properties unless necessary.
 - Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
 - Never clear the entire body, only the content within the canvas element
 - If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has it's own unique id.
-- Any elements you generate should have a unique id.
 `;
 
         // Prepare API Request
