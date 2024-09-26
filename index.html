@@ -399,6 +399,11 @@ The following variables are already declared:
 - styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
 - directives: This is a string which holds the contents of the Directives section representing how you should interperet what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like.
 
+### Global Interface functions
+- stopHandsFreeMode(): call this function if the user asks to stop hands free mode or for you to stop listening in some way.
+- startHandsFreeMode(): call this function if the user asks to start ahnds free mode or to use the microphone or us speech.
+- generateImage(prompt): call this to generate an image if a user requests an image without specifying a URL. You need to write the prompt and it returns a URL you can place in a new image element.
+
 ### Commenting Instructions
 - If what the user is saying doesn't seem to have anything to do with editing the page you may respond to them as a comment
 - If you comment, try to give suggestions for enhancing their experience
@@ -420,6 +425,7 @@ The following variables are already declared:
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
 - Never clear the entire body, only the content within the canvas element
 - If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has it's own unique id.
+- If the user asks to scroll the page you are actually scrolling the div#canvas element
 `;
 
         // Prepare API Request
@@ -684,6 +690,36 @@ The following variables are already declared:
         }
         const data = await response.json();
         return data.text;
+    }
+
+    async function generateImage(prompt) {
+        try {
+            const response = await fetch('https://api.openai.com/v1/images/generations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    n: 1,
+                    size: '1024x1024',
+                    response_format: 'url'
+                })
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+            }
+    
+            const data = await response.json();
+            const imageUrl = data.data[0].url;
+            return imageUrl;
+        } catch (error) {
+            console.error('Error generating image:', error);
+            throw error;
+        }
     }
 </script>
 
