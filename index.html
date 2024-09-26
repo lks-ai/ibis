@@ -402,7 +402,7 @@ The following variables are already declared:
 ### Global Interface functions
 - stopHandsFreeMode(): call this function if the user asks to stop hands free mode or for you to stop listening in some way.
 - startHandsFreeMode(): call this function if the user asks to start ahnds free mode or to use the microphone or us speech.
-- generateImage(prompt): call this to generate an image if a user requests an image without specifying a URL. You need to write the prompt and it returns a URL you can place in a new image element.
+- generateImage(prompt): call this to generate an image. You need to write the prompt and it returns a URL you can place in a new image element.
 
 ### Commenting Instructions
 - If what the user is saying doesn't seem to have anything to do with editing the page you may respond to them as a comment
@@ -418,6 +418,7 @@ The following variables are already declared:
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
 - If the user asks to download or save the page they mean a copy of the innerHTML of the div#canvas element with it's own head and unique title elements, plus any javascript and style script needed to interact with it. Think of it as asking to download a self contained app or page.
 - Any elements you generate should have a unique id.
+- Only use generateImage if a user requests an image in their current request without specifying a URL. 
 - If modifying an existing element, reference it by its id.
 - Avoid duplicating content by properly identifying content the user has already created and alter it.
 - Avoid dumping strings into innerHTML properties unless necessary.
@@ -426,6 +427,7 @@ The following variables are already declared:
 - Never clear the entire body, only the content within the canvas element
 - If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has it's own unique id.
 - If the user asks to scroll the page you are actually scrolling the div#canvas element
+- Only use your code from the chat history as a reference, avoiding re-generating things which are not essential to the current user request.
 `;
 
         // Prepare API Request
