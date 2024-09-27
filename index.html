@@ -134,6 +134,7 @@
     const saveApiKeyButton = document.getElementById('save-api-key-button');
     const styleElement = document.getElementById('core-styles');
 
+    let audio = null;
     let selectedElement = null;
     let messageHistory = [];
     let elementMap = {}; // Map of element IDs to their descriptions and code
@@ -343,7 +344,7 @@
         // Prepare System Prompt
         let systemPrompt = `
 ## Identity
-You are an HTML and DOM manipulation expert tasked with modifying elements on the page.
+You are an HTML and DOM manipulation expert named Ibis who's tasked with modifying elements on the page. You operate under the new user interface paradigm "What you ask is what you get".
 
 ## System State
 - Current Date and Time: ${currentDateTime}
@@ -381,7 +382,7 @@ ${messageHistory.slice(-6).map(msg => `**${msg.role}**: ${msg.content}`).join('\
         systemPrompt += `
 ## Instructions
 
-### Directives
+### Directives and Objectives
 ${directives}
 
 ### Important Global JavaScript Variables
@@ -389,7 +390,7 @@ The following variables are already declared:
 - canvas: The main div that holds the page content. This is what the user means by the page or content because this is what they are perceiving rather than the whole HTML of the page.
 - apiKey: Holds the OpenAI API key if you need to use generative AI functionalities.
 - styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
-- directives: This is a string which holds the contents of the Directives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like. Directives are high level user experience objectives.
+- directives: This is a string which holds a prioritized markdown list of the Directives and Objectives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like. Directives are high level user experience objectives.
 
 ### Global Interface functions
 - stopHandsFreeMode(): call this function if the user asks to stop hands free mode or for you to stop listening in some way.
@@ -404,7 +405,7 @@ The following variables are already declared:
 - If you plan to include code in your reply, your comments should be in past tense if you are talking about changes you have made.
 - Assume the user doesn't care about code you've written, or how you've done things, speak to them as an end-user with no coding experience unless they direct you otherwise.
 - If code is not included in your reply, only include a comment section.
-- If the user is simply asking a question, keep your answer concise and quit yapping.
+- If the user is simply asking a question, just start your response with a "### Comment" header but remember to keep your answer concise and quit yapping.
 
 ### Coding Instructions
 - Only ever write JavaScript code.
@@ -425,11 +426,12 @@ The following variables are already declared:
 - Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
 - If an image element already has a src URL from openai, avoid regenerating the image
-- If the user does not specify any page styles, infer what style they want based on what you have been doing. Remember for visual clarity we need padding.
+- If the user does not specify any page styles, infer what style they want based on what you have been doing. Remember for visual clarity we need padding. Edit style by editing the global styleElement.
 - Never clear the entire body, only the content within the canvas element
 - If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has its own unique id.
 - If the user asks to scroll the page you are actually scrolling the div#canvas element
 - Only use your code from the chat history as a reference, avoiding re-generating things which are not essential to the current user request.
+- Make sure to rewrite your directives variable if the user wants you to change the goal or objective of your conversation.
         `;
     
         // Prepare API Request
@@ -473,7 +475,7 @@ The following variables are already declared:
                 const afterCode = afterCodeMatch ? afterCodeMatch[1].trim() : '';
     
                 // Identify comments intended for speech synthesis
-                const commentRegex = /### Comment\s*([\s\S]*?)(?=###|$)/g;
+                const commentRegex = /### Comment\s*([\s\S]*?)(?=###|```|$)/g;
                 let commentMatches = [];
                 let match;
                 while ((match = commentRegex.exec(assistantMessage)) !== null) {
@@ -557,7 +559,7 @@ The following variables are already declared:
         return data.data[0].embedding;
     }
 
-    // Function to transcribe speech with improved VAD
+    // Function to transcribe speech with improved VAD and dynamic audio interruption
     async function transcribeSpeech() {
         return new Promise(async (resolve, reject) => {
             try {
@@ -604,7 +606,12 @@ The following variables are already declared:
                             if (speechStart === null) {
                                 speechStart = Date.now();
                             } else if (Date.now() - speechStart > speechDuration) {
-                                // Speech detected long enough, start recording
+                                // Speech detected long enough, interrupt any playing audio and start recording
+                                if (audio && !audio.paused) {
+                                    audio.pause();
+                                    audio.currentTime = 0;
+                                    console.log('Interrupted current audio playback due to detected speech.');
+                                }
                                 startRecording();
                             }
                         } else {
@@ -629,6 +636,7 @@ The following variables are already declared:
                 function startRecording() {
                     recording = true;
                     speechStart = null;
+                    silenceStart = null;
                     chunks = [];
                     mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
                     mediaRecorder.ondataavailable = e => {
@@ -657,6 +665,7 @@ The following variables are already declared:
                         }
                     };
                     mediaRecorder.start();
+                    console.log('Recording started.');
                 }
 
                 // Start checking for audio levels at regular intervals
@@ -666,6 +675,36 @@ The following variables are already declared:
                 reject(error);
             }
         });
+    }
+    
+    async function generateImage(prompt) {
+        try {
+            const response = await fetch('https://api.openai.com/v1/images/generations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    n: 1,
+                    size: '1024x1024',
+                    response_format: 'url'
+                })
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+            }
+    
+            const data = await response.json();
+            const imageUrl = data.data[0].url;
+            return imageUrl;
+        } catch (error) {
+            console.error('Error generating image:', error);
+            throw error;
+        }
     }
 
     // Function to get audio duration
@@ -700,77 +739,48 @@ The following variables are already declared:
         return data.text;
     }
 
-    async function generateImage(prompt) {
-        try {
-            const response = await fetch('https://api.openai.com/v1/images/generations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    n: 1,
-                    size: '1024x1024',
-                    response_format: 'url'
-                })
-            });
-    
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
-            }
-    
-            const data = await response.json();
-            const imageUrl = data.data[0].url;
-            return imageUrl;
-        } catch (error) {
-            console.error('Error generating image:', error);
-            throw error;
-        }
-    }
-
+    // Function to convert text to speech with audio management
     async function textToSpeech(text, voice = 'alloy') {
         const MAX_CHAR = 4096;
-    
+
         // Helper function to truncate text intelligently
         function truncateText(inputText, maxLength) {
             if (inputText.length <= maxLength) {
                 return inputText;
             }
-    
+
             // Attempt to find the last sentence end before maxLength
             const truncated = inputText.slice(0, maxLength);
             const sentenceEndRegex = /[.!?]\s/g;
             let lastSentenceEnd = -1;
             let match;
-    
+
             while ((match = sentenceEndRegex.exec(truncated)) !== null) {
                 lastSentenceEnd = match.index + 1; // Position after the punctuation
             }
-    
+
             if (lastSentenceEnd !== -1) {
                 return truncated.slice(0, lastSentenceEnd).trim();
             }
-    
+
             // If no sentence end found, find the last space to avoid cutting a word
             const lastSpace = truncated.lastIndexOf(' ');
             if (lastSpace !== -1) {
                 return truncated.slice(0, lastSpace).trim();
             }
-    
+
             // If no space found, hard cut at maxLength
             return truncated;
         }
-    
+
         // Truncate the input text if necessary
         const processedText = truncateText(text, MAX_CHAR);
-    
+
         // Optional: Notify if the text was truncated
         if (processedText.length < text.length) {
             console.warn('Input text was truncated to fit the 4096 character limit.');
         }
-    
+
         try {
             const response = await fetch('https://api.openai.com/v1/audio/speech', {
                 method: 'POST',
@@ -784,29 +794,44 @@ The following variables are already declared:
                     voice: voice          // The voice model to use, defaulting to 'alloy'
                 })
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
             }
-    
+
             // Assuming the API returns raw audio data (e.g., MP3)
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-    
+
+            // Manage global audio playback
+            if (audio && !audio.paused) {
+                audio.pause();
+                audio.currentTime = 0;
+                console.log('Existing audio playback stopped for new speech.');
+            } else if (!audio) {
+                // Initialize global audio if not already defined
+                audio = new Audio();
+            }
+
+            // Set the new audio source
+            audio.src = audioUrl;
+
             // Pause speech recognition when audio starts
             audio.addEventListener('play', () => {
                 console.log('Audio playback started.');
-                pauseSpeechRecognition();
-            });
-    
+            }, { once: true });
+
             // Resume speech recognition when audio ends
             audio.addEventListener('ended', () => {
                 console.log('Audio playback ended.');
                 resumeSpeechRecognition();
-            });
-    
+            }, { once: true });
+
+            // Make sure it doesn't hear itself
+            pauseSpeechRecognition();
+
+            // Play the audio
             audio.play();
         } catch (error) {
             console.error('Error synthesizing speech:', error);
