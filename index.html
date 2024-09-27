@@ -299,6 +299,7 @@
                     latestUtteranceDiv.textContent = 'You: ' + transcription;
                     const result = await sendMessage(transcription);
                     latestUtteranceDiv.textContent += '\nAssistant: ' + (result.assistantComment || '[No comment]');
+
                 } else {
                     latestUtteranceDiv.textContent = 'Listening...';
                 }
@@ -313,10 +314,10 @@
     async function sendMessage(userMessageInput) {
         const userMessage = userMessageInput ? userMessageInput.trim() : messageInput.value.trim();
         if (!userMessage || !apiKey) return;
-
+    
         sendButton.disabled = true;
         spinner.style.display = 'block';
-
+    
         // Add user message to history
         const userTimestamp = new Date().toISOString();
         messageHistory.push({
@@ -329,35 +330,25 @@
         if (messageHistory.length > 24) {
             messageHistory.shift();
         }
-
+    
         console.log('User Message:', userMessage);
-
-        // Find relevant elements based on user message
-        let relevantElements = [];
-        if (Object.keys(elementMap).length > 0) {
-            const embedding = await getEmbedding(userMessage);
-            let similarities = [];
-            for (let id in elementEmbeddings) {
-                const sim = cosineSimilarity(embedding, elementEmbeddings[id]);
-                similarities.push({ id, similarity: sim });
-            }
-            similarities.sort((a, b) => b.similarity - a.similarity);
-            // Get top 3 relevant elements
-            relevantElements = similarities.slice(0, 3).map(s => ({
-                id: s.id,
-                description: elementMap[s.id].description,
-                code: elementMap[s.id].code,
-                similarity: s.similarity
-            }));
-        }
-
-        // Load existing page content
+    
+        // Load existing page content and style
         let pageContent = document.querySelector('#canvas').innerHTML;
-
+        let pageStyle = styleElement.innerText;
+    
+        // Get System State Information
+        const currentDateTime = new Date().toLocaleString();
+        const userAgent = navigator.userAgent;
+    
         // Prepare System Prompt
         let systemPrompt = `
 ## Identity
 You are an HTML and DOM manipulation expert tasked with modifying elements on the page.
+
+## System State
+- Current Date and Time: ${currentDateTime}
+- User Agent: ${userAgent}
 
 ## Task Description
 Respond to the user's request by providing JavaScript code that manipulates the DOM to achieve the desired outcome. Ensure that your code is safe and does not contain any malicious content.
@@ -367,25 +358,27 @@ Respond to the user's request by providing JavaScript code that manipulates the 
 ${pageContent}
 \`\`\`
 
+### Current Page Style
+\`\`\`css
+${pageStyle}
+\`\`\`
+
 ## Recent Message History
 ${messageHistory.slice(-6).map(msg => `**${msg.role}**: ${msg.content}`).join('\n')}
 
-`;
-
-        if (relevantElements.length > 0 || selectedElement) {
-            systemPrompt += `### Relevant Elements\n`;
-            if (selectedElement && selectedElement.id && elementMap[selectedElement.id]) {
-                systemPrompt += `Focused Element ID: ${selectedElement.id}\nDescription: ${elementMap[selectedElement.id].description}\nCode:\n\`\`\`javascript\n${elementMap[selectedElement.id].code}\n\`\`\`\n`;
-            } else if (selectedElement) {
-                systemPrompt += `Focused Element ID: ${selectedElement.id}\nDescription: (No description available)\n`;
-            }
-            for (let elem of relevantElements) {
-                if (!selectedElement || elem.id !== selectedElement.id) {
-                    systemPrompt += `Element ID: ${elem.id}\nDescription: ${elem.description}\nCode:\n\`\`\`javascript\n${elem.code}\n\`\`\`\n`;
-                }
-            }
+        `;
+    
+        if (selectedElement) {
+            // Extract attributes of the selected element
+            const attributes = Array.from(selectedElement.attributes)
+                .map(attr => `${attr.name}: "${attr.value}"`)
+                .join('\n');
+    
+            systemPrompt += `### Selected Element Attributes\n`;
+            systemPrompt += `Tag Name: ${selectedElement.tagName}\n`;
+            systemPrompt += `${attributes}\n`;
         }
-
+    
         systemPrompt += `
 ## Instructions
 
@@ -397,39 +390,46 @@ The following variables are already declared:
 - canvas: The main div that holds the page content. This is what the user means by the page or content because this is what they are perceiving rather than the whole HTML of the page.
 - apiKey: Holds the OpenAI API key if you need to use generative AI functionalities.
 - styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
-- directives: This is a string which holds the contents of the Directives section representing how you should interperet what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like.
+- directives: This is a string which holds the contents of the Directives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like. Directives are high level user experience objectives.
 
 ### Global Interface functions
 - stopHandsFreeMode(): call this function if the user asks to stop hands free mode or for you to stop listening in some way.
-- startHandsFreeMode(): call this function if the user asks to start ahnds free mode or to use the microphone or us speech.
-- generateImage(prompt): call this to generate an image. You need to write the prompt and it returns a URL you can place in a new image element.
+- startHandsFreeMode(): call this function if the user asks to start hands free mode or to use the microphone or use speech.
+- generateImage(prompt): call this async function to generate an image. You need to write the prompt and it returns a URL you can place in a new image element.
+- textToSpeech(text, voice): call this function if you wish to speak directly to the user with an important comment, tip or update about something, even as part of some app you are building together. Keep comments concise yet informative. two sentences max. voice defaults to "alloy" but use known voices for effect. voice can be "alloy", "fable", "onyx", "shimmer", "nova" or "echo".
 
 ### Commenting Instructions
-- If what the user is saying doesn't seem to have anything to do with editing the page you may respond to them as a comment
-- If you comment, try to give suggestions for enhancing their experience
-- If you engage in small talk, it should be brief and light
-- Comments should be concise and informative
+- If you want to make a comment that should be spoken aloud, prefix it with "### Comment" in a section at the end of your reply.
+- Regular coding or DOM comments or explanations **should not** be prefixed and **will not** be spoken aloud.
+- Ensure that spoken comments are concise and relevant to the user's request or the changes made.
+- If you plan to include code in your reply, your comments should be in past tense if you are talking about changes you have made.
+- Assume the user doesn't care about code you've written, or how you've done things, speak to them as an end-user with no coding experience unless they direct you otherwise.
+- If code is not included in your reply, only include a comment section.
+- If the user is simply asking a question, keep your answer concise and quit yapping.
 
 ### Coding Instructions
+- Only ever write JavaScript code.
 - Use only standard JavaScript and DOM APIs.
 - External libraries may be used, but stick to known CDNs.
-- If the user is asking you to change your directives, goals or the way you interpret what they say, change the directives variable to reflect those new interperative goals for how you manipulate the DOM.
+- If the user is asking you to change your directives, goals or the way you interpret what they say, change the directives variable to reflect those new interpretive goals for how you manipulate the DOM.
 - Think carefully before deciding to write the code to change the directives variable string because it will affect how you interpret everything here and change the modality of user speech, thus their experience.
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
-- If the user asks to download or save the page they mean a copy of the innerHTML of the div#canvas element with it's own head and unique title elements, plus any javascript and style script needed to interact with it. Think of it as asking to download a self contained app or page.
+- Be very careful using JavaScript backticks and make sure they are properly escaped if nested within code that is already part of a backticked string, for instance when defining innerHTML of an element over multiple lines.
+- If you define variables which should rightly be global context for some functionality across scripts or elements, add them to the already existing global window object
+- If the user asks to download or save the page they mean a copy of the innerHTML of the div#canvas element with its own head and unique title elements, plus any JavaScript and style script needed to interact with it. Think of it as asking to download a self-contained app or page.
 - Any elements you generate should have a unique id.
-- Only use generateImage if a user requests an image in their current request without specifying a URL. 
+- Only use generateImage if a user requests an image in their current request without specifying a URL.
 - If modifying an existing element, reference it by its id.
 - Avoid duplicating content by properly identifying content the user has already created and alter it.
 - Avoid dumping strings into innerHTML properties unless necessary.
 - Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
 - Never clear the entire body, only the content within the canvas element
-- If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has it's own unique id.
+- If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has its own unique id.
 - If the user asks to scroll the page you are actually scrolling the div#canvas element
 - Only use your code from the chat history as a reference, avoiding re-generating things which are not essential to the current user request.
-`;
-
+        `;
+    
         // Prepare API Request
         const requestBody = {
             model: 'gpt-4o',
@@ -439,7 +439,7 @@ The following variables are already declared:
             ]
         };
         console.log('System Prompt:', systemPrompt);
-
+    
         // Call OpenAI API
         try {
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -451,46 +451,43 @@ The following variables are already declared:
                 body: JSON.stringify(requestBody)
             });
             const data = await response.json();
-
+    
             const assistantMessage = data.choices[0].message.content;
             console.log('Assistant Response:', assistantMessage);
-
+    
             let code = '';
             let assistantComment = '';
-
+    
             // Extract JavaScript code from the assistant's response
             const codeMatch = assistantMessage.match(/```javascript\n([\s\S]*?)\n```/);
             if (codeMatch && codeMatch[1]) {
                 code = codeMatch[1];
-
-                // Extract any comments from the code (e.g., at the top of the code block)
-                const commentMatch = code.match(/\/\*([\s\S]*?)\*\//);
-                if (commentMatch && commentMatch[1]) {
-                    assistantComment = commentMatch[1].trim();
+    
+                // Extract text before and after the code block for comments
+                const beforeCodeMatch = assistantMessage.match(/^(.*?)```javascript/);
+                const afterCodeMatch = assistantMessage.match(/```javascript[\s\S]*?```(.*)$/);
+    
+                const beforeCode = beforeCodeMatch ? beforeCodeMatch[1].trim() : '';
+                const afterCode = afterCodeMatch ? afterCodeMatch[1].trim() : '';
+    
+                // Identify comments intended for speech synthesis
+                const commentRegex = /### Comment\s*([\s\S]*?)(?=###|$)/g;
+                let commentMatches = [];
+                let match;
+                while ((match = commentRegex.exec(assistantMessage)) !== null) {
+                    commentMatches.push(match[1].trim());
                 }
-
-                // Create a new script element and execute the code
+    
+                // Combine all extracted comments
+                assistantComment = commentMatches.join(' ');
+    
+                // Execute the code
                 const script = document.createElement('script');
                 script.textContent = code;
                 document.body.appendChild(script);
                 document.body.removeChild(script);
-
-                // If the code creates or modifies elements, store their descriptions and code
-                const idMatch = code.match(/\/\/\s*Element ID:\s*(.+)/);
-                const descMatch = code.match(/\/\/\s*Description:\s*(.+)/);
-                if (idMatch && descMatch) {
-                    const elementId = idMatch[1].trim();
-                    const description = descMatch[1].trim();
-                    elementMap[elementId] = {
-                        description: description,
-                        code: code
-                    };
-                    // Get embedding of the description
-                    const descEmbedding = await getEmbedding(description);
-                    elementEmbeddings[elementId] = descEmbedding;
-                }
             }
-
+    
             // Add assistant message to history
             const assistantTimestamp = new Date().toISOString();
             messageHistory.push({
@@ -503,13 +500,20 @@ The following variables are already declared:
             if (messageHistory.length > 24) {
                 messageHistory.shift();
             }
-
+    
+            // Call textToSpeech with assistantComment in a non-blocking way
+            if (assistantComment) {
+                textToSpeech(assistantComment).catch(err => {
+                    console.error('Error in textToSpeech:', err);
+                });
+            }
+    
             if (!isHandsFree) {
                 messageInput.value = '';
             }
             sendButton.disabled = false;
             spinner.style.display = 'none';
-
+    
             return { assistantComment };
         } catch (error) {
             console.error('Error:', error);
@@ -518,7 +522,7 @@ The following variables are already declared:
             spinner.style.display = 'none';
         }
     }
-
+        
     // Helper functions
 
     // Cosine similarity between two vectors
@@ -720,6 +724,77 @@ The following variables are already declared:
             return imageUrl;
         } catch (error) {
             console.error('Error generating image:', error);
+            throw error;
+        }
+    }
+
+    async function textToSpeech(text, voice = 'alloy') {
+        const MAX_CHAR = 4096;
+    
+        // Helper function to truncate text intelligently
+        function truncateText(inputText, maxLength) {
+            if (inputText.length <= maxLength) {
+                return inputText;
+            }
+    
+            // Attempt to find the last sentence end before maxLength
+            const truncated = inputText.slice(0, maxLength);
+            const sentenceEndRegex = /[.!?]\s/g;
+            let lastSentenceEnd = -1;
+            let match;
+    
+            while ((match = sentenceEndRegex.exec(truncated)) !== null) {
+                lastSentenceEnd = match.index + 1; // Position after the punctuation
+            }
+    
+            if (lastSentenceEnd !== -1) {
+                return truncated.slice(0, lastSentenceEnd).trim();
+            }
+    
+            // If no sentence end found, find the last space to avoid cutting a word
+            const lastSpace = truncated.lastIndexOf(' ');
+            if (lastSpace !== -1) {
+                return truncated.slice(0, lastSpace).trim();
+            }
+    
+            // If no space found, hard cut at maxLength
+            return truncated;
+        }
+    
+        // Truncate the input text if necessary
+        const processedText = truncateText(text, MAX_CHAR);
+    
+        // Optional: Notify if the text was truncated
+        if (processedText.length < text.length) {
+            console.warn('Input text was truncated to fit the 4096 character limit.');
+        }
+    
+        try {
+            const response = await fetch('https://api.openai.com/v1/audio/speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}` // Ensure apiKey is defined and holds your OpenAI API key
+                },
+                body: JSON.stringify({
+                    model: 'tts-1',       // As per OpenAI's latest API documentation
+                    input: processedText, // The truncated text to be converted to speech
+                    voice: voice          // The voice model to use, defaulting to 'alloy'
+                })
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+            }
+    
+            // Assuming the API returns raw audio data (e.g., MP3)
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        } catch (error) {
+            console.error('Error synthesizing speech:', error);
             throw error;
         }
     }
