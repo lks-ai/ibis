@@ -413,6 +413,7 @@ The following variables are already declared:
 - If the user is asking you to change your directives, goals or the way you interpret what they say, change the directives variable to reflect those new interpretive goals for how you manipulate the DOM.
 - Think carefully before deciding to write the code to change the directives variable string because it will affect how you interpret everything here and change the modality of user speech, thus their experience.
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
+- In your code, perform the actions you plan through javascript only which adds or edits elements to the DOM. Avoid code sections for html because they will not be processed.
 - Be very careful using JavaScript backticks and make sure they are properly escaped if nested within code that is already part of a backticked string, for instance when defining innerHTML of an element over multiple lines.
 - If you define variables which should rightly be global context for some functionality across scripts or elements, add them to the already existing global window object
 - If the user asks to download or save the page they mean a copy of the innerHTML of the div#canvas element with its own head and unique title elements, plus any JavaScript and style script needed to interact with it. Think of it as asking to download a self-contained app or page.
