@@ -209,13 +209,7 @@
 
     // Microphone Button
     microphoneButton.addEventListener('click', async () => {
-        isHandsFree = !isHandsFree;
-        updateUIForHandsFreeMode();
-        if (isHandsFree) {
-            startHandsFreeMode();
-        } else {
-            stopHandsFreeMode();
-        }
+        toggleHandsFreeMode();
     });
 
     function updateUIForHandsFreeMode() {
@@ -273,6 +267,17 @@
             isHandsFree = false;
             updateUIForHandsFreeMode();
         }
+    }
+
+    async function toggleHandsFreeMode() {
+        isHandsFree = !isHandsFree;
+        updateUIForHandsFreeMode();
+        if (isHandsFree) {
+            await startHandsFreeMode();
+        } else {
+            stopHandsFreeMode();
+        }
+
     }
 
     function stopHandsFreeMode() {
@@ -345,7 +350,7 @@
         // Prepare System Prompt
         let systemPrompt = `
 ## Identity
-You are an HTML and DOM manipulation expert named Ibis who's tasked with modifying elements on the page. You operate under the new user interface paradigm "What you ask is what you get".
+You are an HTML and DOM manipulation expert named Ibis who's tasked with modifying elements on the page. You operate under the new user interface paradigm "What you ask is what you get"; a new paradigm where the user interface is interacted with through the latest voice activated technologies. Automatic transcription and vocal feedback are assumed.
 
 ## System State
 - Current Date and Time: ${currentDateTime}
@@ -392,11 +397,12 @@ The following variables are already declared:
 - canvas: The main div that holds the page content. This is what the user means by the page or content because this is what they are perceiving rather than the whole HTML of the page.
 - apiKey: Holds the OpenAI API key if you need to use generative AI functionalities.
 - styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
+- selectedElement: The current DOM element the user is focused on. Use for reference.
 - directives: This is a string which holds a prioritized markdown list of the Directives and Objectives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like. Directives are high level user experience objectives.
 
 ### Global Interface functions
 - stopHandsFreeMode(): call this function if the user asks to stop hands free mode or for you to stop listening in some way.
-- startHandsFreeMode(): call this function if the user asks to start hands free mode or to use the microphone or use speech.
+- async toggleHandsFreeMode(): use this function within interface elements to allow the user to change the global hands-free mode on or off.
 - generateImage(prompt): call this async function to generate an image. You need to write the prompt and it returns a URL you can place in a new image element.
 - textToSpeech(text, voice): call this function if you wish to speak directly to the user with an important comment, tip or update about something, even as part of some app you are building together. Keep comments concise yet informative. two sentences max. voice defaults to "alloy" but use known voices for effect. voice can be "alloy", "fable", "onyx", "shimmer", "nova" or "echo".
 
@@ -413,6 +419,8 @@ The following variables are already declared:
 - Only ever write JavaScript code.
 - Use only standard JavaScript and DOM APIs.
 - External libraries may be used, but stick to known CDNs.
+- If the user mentions how to treat what they say or when they talk, remember, the user input is already transcribed from their speech.
+- Always assume that voice transcription, speech-recognition, speech to text and advanced AI capabilities are fully integrated already to the interface, avoid coding these functionalities and instead use global interface functions where necessary.
 - Always write fully functional interface, including back-end support if necessary. Avoid writing simulations of apps or toy apps unless that is what the user explicity requests.
 - If the user is asking you to change your directives, goals or the way you interpret what they say, change the directives variable to reflect those new interpretive goals for how you manipulate the DOM.
 - Think carefully before deciding to write the code to change the directives variable string because it will affect how you interpret everything here and change the modality of user speech, thus their experience.
@@ -474,12 +482,13 @@ The following variables are already declared:
     
                 // Wrap the code in a try/catch block
                 const wrappedCode = `
-    try {
-        ${code}
-    } catch (e) {
-        textToSpeech("Error: " + e.message);
-    }
-    `;
+try {
+    ${code}
+} catch (e) {
+    textToSpeech("Error: " + e.message);
+    console.log(e);
+}
+                `;
     
                 // Extract text before and after the code block for comments
                 const beforeCodeMatch = assistantMessage.match(/^(.*?)```javascript/);
@@ -627,7 +636,7 @@ The following variables are already declared:
                                     audio.currentTime = 0;
                                     console.log('Interrupted current audio playback due to detected speech.');
                                 }
-                                startRecording();
+                                // startRecording();
                             }
                         } else {
                             speechStart = null;
