@@ -1,3 +1,4 @@
+<!-- Ibis: https://github.com/lks-ai/ibis -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -411,6 +412,7 @@ The following variables are already declared:
 - Only ever write JavaScript code.
 - Use only standard JavaScript and DOM APIs.
 - External libraries may be used, but stick to known CDNs.
+- Always write fully functional interface, including back-end support if necessary. Avoid writing simulations of apps or toy apps unless that is what the user explicity requests.
 - If the user is asking you to change your directives, goals or the way you interpret what they say, change the directives variable to reflect those new interpretive goals for how you manipulate the DOM.
 - Think carefully before deciding to write the code to change the directives variable string because it will affect how you interpret everything here and change the modality of user speech, thus their experience.
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
@@ -419,19 +421,21 @@ The following variables are already declared:
 - If you define variables which should rightly be global context for some functionality across scripts or elements, add them to the already existing global window object
 - If the user asks to download or save the page they mean a copy of the innerHTML of the div#canvas element with its own head and unique title elements, plus any JavaScript and style script needed to interact with it. Think of it as asking to download a self-contained app or page.
 - Any elements you generate should have a unique id.
-- Only use generateImage if a user requests an image in their current request without specifying a URL.
-- If modifying an existing element, reference it by its id.
+- If modifying an existing element, reference it by its id
 - Avoid duplicating content by properly identifying content the user has already created and alter it. You can do this by first probing to see if an element already exists.
 - Avoid dumping strings into innerHTML properties unless necessary.
-- Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
+- Only use generateImage if a user requests an image in their current request without specifying a URL.
+- When positioning and styling new Image elements, make sure to take into account the layout context around it to make it fit correctly.
 - If an image element already has a src URL from openai, avoid regenerating the image
 - If the user does not specify any page styles, infer what style they want based on what you have been doing. Remember for visual clarity we need padding. Edit style by editing the global styleElement.
+- Use built-in modals instead of alerts where applicable
 - Never clear the entire body, only the content within the canvas element
 - If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has its own unique id.
 - If the user asks to scroll the page you are actually scrolling the div#canvas element
 - Only use your code from the chat history as a reference, avoiding re-generating things which are not essential to the current user request.
 - Make sure to rewrite your directives variable if the user wants you to change the goal or objective of your conversation.
+- Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
         `;
     
         // Prepare API Request
@@ -467,6 +471,15 @@ The following variables are already declared:
             if (codeMatch && codeMatch[1]) {
                 code = codeMatch[1];
     
+                // Wrap the code in a try/catch block
+                const wrappedCode = `
+    try {
+        ${code}
+    } catch (e) {
+        textToSpeech("Error: " + e.message);
+    }
+    `;
+    
                 // Extract text before and after the code block for comments
                 const beforeCodeMatch = assistantMessage.match(/^(.*?)```javascript/);
                 const afterCodeMatch = assistantMessage.match(/```javascript[\s\S]*?```(.*)$/);
@@ -485,9 +498,9 @@ The following variables are already declared:
                 // Combine all extracted comments
                 assistantComment = commentMatches.join(' ');
     
-                // Execute the code
+                // Execute the wrapped code within a script tag
                 const script = document.createElement('script');
-                script.textContent = code;
+                script.textContent = wrappedCode;
                 document.body.appendChild(script);
                 document.body.removeChild(script);
             }
@@ -526,7 +539,7 @@ The following variables are already declared:
             spinner.style.display = 'none';
         }
     }
-        
+            
     // Helper functions
 
     // Cosine similarity between two vectors
