@@ -360,6 +360,7 @@ ${pageContent}
 \`\`\`
 
 ### Current Page Style
+The innerHTML of the global styleElement variable:
 \`\`\`css
 ${pageStyle}
 \`\`\`
@@ -428,7 +429,7 @@ The following variables are already declared:
 - Only use generateImage if a user requests an image in their current request without specifying a URL.
 - When positioning and styling new Image elements, make sure to take into account the layout context around it to make it fit correctly.
 - If an image element already has a src URL from openai, avoid regenerating the image
-- If the user does not specify any page styles, infer what style they want based on what you have been doing. Remember for visual clarity we need padding. Edit style by editing the global styleElement.
+- If the user does not specify any page styles, infer what style they want based on what you are doing. Remember for visual clarity we need padding. If the current page style css is empty, add a suitable style.
 - Use built-in modals instead of alerts where applicable
 - Never clear the entire body, only the content within the canvas element
 - If you include JavaScript functionality for element events, this JS needs to be included in a <script> tag within the page content that has its own unique id.
@@ -488,21 +489,22 @@ The following variables are already declared:
                 const afterCode = afterCodeMatch ? afterCodeMatch[1].trim() : '';
     
                 // Identify comments intended for speech synthesis
-                const commentRegex = /### Comment\s*([\s\S]*?)(?=###|```|$)/g;
+                const commentRegex = /^### Comment\s*([\s\S]*?)(?=###|```|$)/gm;
+
                 let commentMatches = [];
                 let match;
+                // Get only last comment (could get all, but let's stick to this for now)
                 while ((match = commentRegex.exec(assistantMessage)) !== null) {
-                    commentMatches.push(match[1].trim());
+                    assistantComment = match[1].trim();
                 }
-    
-                // Combine all extracted comments
-                assistantComment = commentMatches.join(' ');
-    
+        
                 // Execute the wrapped code within a script tag
                 const script = document.createElement('script');
                 script.textContent = wrappedCode;
                 document.body.appendChild(script);
                 document.body.removeChild(script);
+            }else{
+                assistantComment = assistantMessage.replace("### Comment", "").trim();
             }
     
             // Add assistant message to history
