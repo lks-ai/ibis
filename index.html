@@ -465,6 +465,7 @@ The following variables are already declared:
 - Use only standard JavaScript and DOM APIs.
 - External libraries may be used, but stick to known CDNs.
 - Always code to production ready standards.
+- When coding for an API, be sure to handle errors by commenting them to the user and asking if they'd like you to attempt to fix.
 - If the user mentions how to treat what they say or when they talk, remember, the user input is already transcribed from their speech.
 - Always assume that voice transcription, speech-recognition, speech to text and advanced AI capabilities are fully integrated already to the interface, avoid coding these functionalities and instead use global interface functions where necessary.
 - Always write fully functional interface, including back-end support if necessary. Avoid writing simulations of apps or toy apps unless that is what the user explicity requests.
@@ -486,7 +487,8 @@ The following variables are already declared:
 - When positioning and styling new Image elements, make sure to take into account the layout context around it to make it fit correctly.
 - If an image element already has a src URL from openai, avoid regenerating the image
 - If the user does not specify any page styles, infer what style they want based on what you are doing and attempt to properly align all elements. Remember for visual clarity we need padding. If the current page style css is empty, add a suitable style.
-- Use built-in modals instead of alerts where applicable
+- If generating game assets or making games with WebGL remember that game initalization and configuration needs to go inside the codeContainer.
+- Use built-in modals instead of alerts where applicable.
 - Always use global scope variables when creating timers or loops with setTimeout and setInterval so that you can access them again.
 - Never clear the entire body, only the content within the canvas element
 - If you write app runtime functionality like attaching events or other stateful features the user might request, update codeContainer.innerText with changes or additions, keep any existing permanent code in mind while modifying.
