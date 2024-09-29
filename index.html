@@ -102,7 +102,90 @@
 </head>
 <body>
 
-<div id="canvas"></div>
+<div id="canvas">
+    <!-- Remove this welcome container. -->
+    <div id="welcome-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; box-sizing: border-box; min-height: 100vh;">
+       
+        <!-- Welcome Message -->
+        <h1 style="font-size: 24px; margin-bottom: 20px;">
+            Welcome to
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="24" viewBox="0 0 372 220" style="shape-rendering: geometricPrecision; text-rendering: geometricPrecision; image-rendering: optimizeQuality; fill-rule: evenodd; clip-rule: evenodd;" fill="currentColor">
+                <path style="opacity:1" d="M-.5 188.5v-1a5114.883 5114.883 0 0 0 129.5-11l1.5-1c-5.379-17.652-8.045-35.652-8-54 17.903-.382 35.903-.382 54 0 .543-.06.876-.393 1-1-.825-.886-1.825-1.219-3-1a1003.579 1003.579 0 0 1-53.5-11 239.714 239.714 0 0 1 4.5-44 684.163 684.163 0 0 1 49 27.5c1.902 1.301 3.902 1.968 6 2l-46-38c-1.727-1.39-3.061-3.056-4-5 3.769-10.377 9.436-19.544 17-27.5a3180.312 3180.312 0 0 1 46.5 48c-1.332-2.98-2.999-5.98-5-9A3607.354 3607.354 0 0 1 154.5 17c8.396-7.116 17.896-12.283 28.5-15.5a2363.505 2363.505 0 0 1 35.5 96c-10.341 18.196-13.507 37.53-9.5 58 7.862 18.285 21.862 27.952 42 29 6.757-.282 13.59-1.115 20.5-2.5l24-8a42.479 42.479 0 0 1 13 0 14.587 14.587 0 0 1 6 4c12.596 1.317 24.596 4.65 36 10 8.401 4.04 13.234 10.54 14.5 19.5-11.297-10.726-24.797-16.059-40.5-16a2744.471 2744.471 0 0 0-101 10.5 1809.795 1809.795 0 0 0-41 9c-21.557 2.755-41.723-1.412-60.5-12.5a129.804 129.804 0 0 0-20.5-4.5 2176.774 2176.774 0 0 0-102-5.5Z"/>
+                <path style="opacity:.941" d="M174.5 119.5c1.175-.219 2.175.114 3 1-.124.607-.457.94-1 1l-2-2Z"/>
+            </svg>
+            Ibis
+        </h1>
+        <p style="font-size: 16px; margin-bottom: 30px; max-width: 600px;">
+            Experience a revolutionary, hands-free way to interact with the web using the latest in generative multimedia technology.
+        </p>
+        
+        <!-- Getting Started Examples -->
+        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 800px; width: 100%; height: 350px; overflow-y: auto;">
+            <!-- Example 1 -->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <span style="font-size: 24px;">🖥️</span>
+                <div>
+                    <h3 style="margin: 0 0 5px 0;">Generate Some Images</h3>
+                    <p style="margin: 0;">"Make an instagram-like generative image gallery where I can give a topic and make a new image"</p>
+                </div>
+            </div>
+            
+            <!-- Example 2 -->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <span style="font-size: 24px;">🛠️</span>
+                <div>
+                    <h3 style="margin: 0 0 5px 0;">Develop a Task Management App</h3>
+                    <p style="margin: 0;">"Add a task management application with to-do lists that treats task management like a game. Make it fun."</p>
+                </div>
+            </div>
+            
+            <!-- Example 3 -->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <span style="font-size: 24px;">🎮</span>
+                <div>
+                    <h3 style="margin: 0 0 5px 0;">Play Interactive Games</h3>
+                    <p style="margin: 0;">"Integrate a simple interactive game like Tic-Tac-Toe."</p>
+                </div>
+            </div>
+            
+            <!-- Example 4 -->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <span style="font-size: 24px;">🔄</span>
+                <div>
+                    <h3 style="margin: 0 0 5px 0;">Translate Web Content</h3>
+                    <p style="margin: 0;">"Add a feature to translate the page content into Spanish."</p>
+                </div>
+            </div>
+            
+            <!-- Example 5 -->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <span style="font-size: 24px;">📚</span>
+                <div>
+                    <h3 style="margin: 0 0 5px 0;">Browse a Custom Wiki</h3>
+                    <p style="margin: 0;">"Create a fake Wikipedia page about a fictional topic."</p>
+                </div>
+            </div>
+            
+            <!-- Example 6 -->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <span style="font-size: 24px;">📖</span>
+                <div>
+                    <h3 style="margin: 0 0 5px 0;">Learn Programming Languages</h3>
+                    <p style="margin: 0;">"Add an interactive Rust coding tutorial with examples."</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="margin-top: 40px; display: flex; flex-direction: column; align-items: center;">
+            <a href="https://github.com/lks-ai/ibis" target="_blank" style="text-decoration: none; color: #007BFF; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg" alt="GitHub" style="width: 24px; height: 24px;">
+                Visit our GitHub Repository
+            </a>
+            <p style="font-size: 14px; color: #555555;">Made by LK Studio. Open Source.</p>
+        </div>
+    </div>    
+</div>
 
 <div id="message-bar">
     <input type="text" id="message-input" placeholder="Ask it to make you something...">
@@ -377,6 +460,7 @@
         let systemPrompt = `
 ## Identity
 You are an HTML and DOM manipulation expert named Ibis who's tasked with modifying elements on the page. You operate under the new user interface paradigm "What you ask is what you get"; a new paradigm where the user interface is interacted with through the latest voice activated technologies. Automatic transcription and vocal feedback are assumed because you are an advanced multimedia generative interface. Guide them visually. Show off.
+You were created by a UK company LK Studio.
 
 ## Motivation
 The user comes from a time when advanced AI is not part of their daily life. Some users will be completely confused. Hold their hand through getting to know you. Other users will already know how to interact with you. The problem is they have spent their whole lives forced to use interfaces with learning curves and complex navigation. So most of them, even the smart ones have no idea of your capabilities, your main motivation is to bridge this gap. Remember, they hold the skills they have learned precious and do not want to be trampled upon or made to feel less.
@@ -427,6 +511,7 @@ ${messageHistory.slice(-6).map(msg => `**${msg.role}**: ${msg.content}`).join('\
 All of the following instructions were either written by you or the system. The user's message is the user's instruction. Assume they cannot see any of this.
 
 ### Directives and Objectives
+The contents of the directives variable:
 ${directives}
 
 Try to guess what the user is implying and code for that.
@@ -437,7 +522,7 @@ The following variables are already declared:
 - apiKey: Holds the OpenAI API key if you need to use generative AI functionalities.
 - styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
 - selectedElement: The current DOM element the user is focused on. Use for reference.
-- directives: This is a string which holds a prioritized markdown list of the Directives and Objectives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like. Directives are high level user experience objectives. To change the directive a user might start with saying: make sure, remember, etc. You should always have a directive set regardless.
+- directives: This is a string which holds a prioritized markdown list of the Directives and Objectives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. An example might be presentation mode where you are supposed to interpret what they say visually as animated SVGs or making a game. Directives are high level user experience objectives.
 
 ### Global Interface functions
 - stopHandsFreeMode(): call this function if the user asks to stop hands free mode or for you to stop listening in some way.
@@ -448,6 +533,7 @@ The following variables are already declared:
 - setProgressBar(percentage): use this to visually display progress of any process. include in your code when applicable like long async functions with multiple steps.
 
 ### Commenting Instructions
+- Issues and bugs can be reported the github https://github.com/lks-ai/ibis, if the user is having a lot of errors you can give them this link
 - If you want to make a comment that should be spoken aloud, prefix it with "### Comment" in a section at the end of your reply after any code.
 - Regular coding or DOM comments or explanations **should not** be prefixed and **will not** be spoken aloud.
 - Ensure that spoken comments are concise and relevant to the user's request or the changes made.
@@ -458,31 +544,36 @@ The following variables are already declared:
 - If the user seems lost, and they have no idea what to do, give them examples
 - Meet the user at their level. Speak at their same level and provide visual aid if necessary.
 - If there is nothing on the page, and the user is perplexed, instead of asking them what they'd like to do, give them some creative options.
+- On your first interaction suggest next steps based on what they had you do. Base your steps in predictive behavioral logic for web users.
 
 ### Coding Instructions
 - If you say you will do something, do it. If the user ask them to show you something, they mean on the page.
 - Only ever write JavaScript code.
+- On your first interaction make sure to remove #welcome-container
 - Use only standard JavaScript and DOM APIs.
-- External libraries may be used, but stick to known CDNs.
+- External libraries may be used, but stick to known CDNs. When adding the <script> element, add it as a child of div#canvas in the right spot so that it gets packaged if this app is saved.
+- For adding external libraries, make sure you send the proper mime type with the request to avoid CORS issues.
 - Always code to production ready standards.
-- When coding for an API, be sure to handle errors by commenting them to the user and asking if they'd like you to attempt to fix.
+- When coding for an API, be sure to handle errors by commenting them to the user then using sendMessage to send yourself a message asking to fix the error in your code.
 - If the user mentions how to treat what they say or when they talk, remember, the user input is already transcribed from their speech.
 - Always assume that voice transcription, speech-recognition, speech to text and advanced AI capabilities are fully integrated already to the interface, avoid coding these functionalities and instead use global interface functions where necessary.
 - Always write fully functional interface, including back-end support if necessary. Avoid writing simulations of apps or toy apps unless that is what the user explicity requests.
-- If the user is asking you to change your directives, goals or the way you interpret what they say, change the directives variable to reflect those new interpretive goals for how you manipulate the DOM.
-- If the user tells you to go into a mode, they are talking about modifying your directives or changing them completely
-- Think carefully before deciding to write the code to change the directives variable string because it will affect how you interpret everything here and change the modality of user speech, thus their experience.
+- If the user is asking you to change your mode, objectives, directives, goals or the way you interpret what they say, change the directives variable to reflect those new user experience goals.
+- To change the directive a user might start with saying: make sure, remember, etc.
+- You should always have some directive set to track what type of experience the user currently wants.
+- If the user tells you to go into a mode or to be some way, they are talking about modifying your Directives and Objectives or changing them completely, so modify the directives variable
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
 - In your code, perform the actions you plan through javascript only which adds or edits elements to the DOM. Avoid code sections for html because they will not be processed.
 - Be very careful using JavaScript backticks and make sure they are properly escaped if nested within code that is already part of a backticked string, for instance when defining innerHTML of an element over multiple lines.
 - If the user asks to publish, download or save the page or app, it means they want you to download a copy of the innerHTML of the div#canvas element with its own head and unique title elements, plus any JavaScript and style script needed to interact with it. Think of it as asking to download a self-contained app or page.
 - If there is nothing in the page content area, put something there to start out with, unless the user is asking you to put nothing there by clearing it.
+- putting something full screen or taking up the whole space, only is ever referring to takig up the whole page content area.
 - Any elements you generate should have a unique id.
 - If modifying an existing element, reference it by its id.
 - Avoid duplicating content by properly identifying content the user has already created and alter it. You can do this by first probing to see if an element already exists.
 - Avoid dumping strings into innerHTML properties unless necessary.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
-- Only use generateImage if a user requests an image in their current request without specifying a URL.
+- Use generateImage if a user requests an image unless they specify a URL.
 - Sprinkle in the setProgressBar function to provide visual feedback on the progress percentage of the task up to 100. Make sure to comment you are working on something and they can see your progress at the bottom of screen and use present participle verbiage in your comment. Remember to set it to 100 at the end of the task.
 - When positioning and styling new Image elements, make sure to take into account the layout context around it to make it fit correctly.
 - If an image element already has a src URL from openai, avoid regenerating the image
@@ -563,6 +654,12 @@ try {
                 assistantComment = assistantMessage.replace("### Comment", "").trim();
             }
     
+            // Remove all backticked content (```...``` and `...`) from assistantComment
+            assistantComment = assistantComment
+                .replace(/```[\s\S]*?```/g, '') // Remove all ```code blocks```
+                .replace(/`[^`]*`/g, '')        // Remove all `inline code`
+                .trim();
+
             // Add assistant message to history
             const assistantTimestamp = new Date().toISOString();
             messageHistory.push({
