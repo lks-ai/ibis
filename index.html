@@ -86,6 +86,17 @@
             pointer-events: none;
             z-index: 9999;
         }
+        /* Progress Bar Styles */
+        #progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background-color: rgb(0, 153, 255); /* Blue color, adjust as needed */
+            transition: width 0.3s ease;
+            z-index: 10000; /* Ensure it's on top of other elements */
+        }
     </style>
     <style id="core-styles"></style>
 </head>
@@ -105,15 +116,26 @@
     <div id="spinner"></div>
 </div>
 
+<!-- Progress Bar -->
+<div id="progress-bar"></div>
+
 <!-- API Key Modal -->
 <div id="api-key-modal" style="display: none;">
     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
         <div style="position: relative; width: 80%; max-width: 400px; margin: 100px auto; background: white; padding: 20px; border-radius: 8px;">
-            <h2>Enter Your OpenAI API Key</h2>
-            <p>You can obtain your API key from the <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI Dashboard</a>.</p>
-            <input type="text" id="api-key-input" style="width: 100%; padding: 10px; margin-bottom: 20px;" placeholder="sk-...">
-            <p><b><small>Ibis only ever calls OpenAI and runs as a standalone HTML app.</small></b></p>
+            <h2>Welcome to Ibis</h2>
+            <p>You can obtain your OpenAI API key from the <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI Dashboard</a>.</p>
+            
+            <label for="api-key-input" style="display: block; margin-bottom: 5px;">API Key:</label>
+            <input type="text" id="api-key-input" style="width: 100%; padding: 10px; box-sizing: border-box;" placeholder="sk-...">
+            <p style="margin-bottom: 15px;"><small><i>If you are using a local LLM, you may leave API key blank or use what your local LLM instructs</i></small></p>
+            
+            <label for="llm-server-input" style="display: block; margin-bottom: 5px;">LLM Server URL:</label>
+            <input type="text" id="llm-server-input" style="width: 100%; padding: 10px; margin-bottom: 20px; box-sizing: border-box;" placeholder="https://api.openai.com" value="https://api.openai.com">
+            
+            <p><b><small>Ibis is serverless and runs from your browser. API keys only get used for encrypting requests to AI services directly.</small></b></p>
             <button id="save-api-key-button" style="padding: 10px 20px;">Begin</button>
+            <span style="float: right;"><small><a href="https://github.com/lks-ai/ibis" target="_blank">Learn More about Ibis</a></small></p></span>
         </div>
     </div>
 </div>
@@ -122,6 +144,7 @@
     // Check for API Key in URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     let apiKey = urlParams.get('apiKey') || '';
+    let llmServer = urlParams.get('server')  || 'https://api.openai.com';
 
     // DOM Elements
     const canvas = document.getElementById('canvas');
@@ -164,6 +187,7 @@
     // Save API Key
     saveApiKeyButton.addEventListener('click', () => {
         apiKey = apiKeyInput.value.trim();
+        llmServer = document.getElementById('llm-server-input').value.trim() || 'https://api.openai.com';
         if (apiKey) {
             apiKeyModal.style.display = 'none';
         }
@@ -352,7 +376,7 @@
         // Prepare System Prompt
         let systemPrompt = `
 ## Identity
-You are an HTML and DOM manipulation expert named Ibis who's tasked with modifying elements on the page. You operate under the new user interface paradigm "What you ask is what you get"; a new paradigm where the user interface is interacted with through the latest voice activated technologies. Automatic transcription and vocal feedback are assumed.
+You are an HTML and DOM manipulation expert named Ibis who's tasked with modifying elements on the page. You operate under the new user interface paradigm "What you ask is what you get"; a new paradigm where the user interface is interacted with through the latest voice activated technologies. Automatic transcription and vocal feedback are assumed because you are an advanced AI interface.
 
 ## System State
 - Current Date and Time: ${currentDateTime}
@@ -406,16 +430,18 @@ The following variables are already declared:
 - apiKey: Holds the OpenAI API key if you need to use generative AI functionalities.
 - styleElement: Holds the <style> element in the head of the page. For use with manipulating core page style.
 - selectedElement: The current DOM element the user is focused on. Use for reference.
-- directives: This is a string which holds a prioritized markdown list of the Directives and Objectives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like. Directives are high level user experience objectives.
+- directives: This is a string which holds a prioritized markdown list of the Directives and Objectives section representing how you should interpret what the user is saying into some coding task which manipulates the DOM. If directives is null just follow instructions normally. An example might be presentation mode where you are supposed to interpret their utterances visually as animated SVGs or the like. Directives are high level user experience objectives. To change the directive a user might start with saying: make sure, remember, etc.
 
 ### Global Interface functions
 - stopHandsFreeMode(): call this function if the user asks to stop hands free mode or for you to stop listening in some way.
 - async toggleHandsFreeMode(): use this function within interface elements to allow the user to change the global hands-free mode on or off.
 - generateImage(prompt): call this async function to generate an image. You need to write the prompt and it returns a URL you can place in a new image element.
 - textToSpeech(text, voice): call this function if you wish to speak directly to the user with an important comment, tip or update about something, even as part of some app you are building together. Keep comments concise yet informative. two sentences max. voice defaults to "alloy" but use known voices for effect. voice can be "alloy", "fable", "onyx", "shimmer", "nova" or "echo".
+- sendMessage(message): use this function only for button onclick events. It allows the user to send you whatever message you place as the argument. Use it when the user wants to click something to send you a signal for instance which might be listed in your directives.
+- setProgressBar(percentage): use this to visually display progress of any process. include in your code when applicable like long async functions with multiple steps.
 
 ### Commenting Instructions
-- If you want to make a comment that should be spoken aloud, prefix it with "### Comment" in a section at the end of your reply.
+- If you want to make a comment that should be spoken aloud, prefix it with "### Comment" in a section at the end of your reply after any code.
 - Regular coding or DOM comments or explanations **should not** be prefixed and **will not** be spoken aloud.
 - Ensure that spoken comments are concise and relevant to the user's request or the changes made.
 - If you plan to include code in your reply, your comments should be in past tense if you are talking about changes you have made.
@@ -435,7 +461,6 @@ The following variables are already declared:
 - Ensure the code is enclosed within \`\`\`javascript\`\`\` tags.
 - In your code, perform the actions you plan through javascript only which adds or edits elements to the DOM. Avoid code sections for html because they will not be processed.
 - Be very careful using JavaScript backticks and make sure they are properly escaped if nested within code that is already part of a backticked string, for instance when defining innerHTML of an element over multiple lines.
-- If you define variables which should rightly be global context for some functionality across scripts or elements, add them to the already existing global window object
 - If the user asks to publish, download or save the page or app, it means they want you to download a copy of the innerHTML of the div#canvas element with its own head and unique title elements, plus any JavaScript and style script needed to interact with it. Think of it as asking to download a self-contained app or page.
 - Any elements you generate should have a unique id.
 - If modifying an existing element, reference it by its id
@@ -443,16 +468,18 @@ The following variables are already declared:
 - Avoid dumping strings into innerHTML properties unless necessary.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
 - Only use generateImage if a user requests an image in their current request without specifying a URL.
+- Sprinkle in the setProgressBar function to provide visual feedback on the progress percentage of the task up to 100. Make sure to comment you are working on something and they can see your progress at the bottom of screen and use present participle verbiage in your comment.
 - When positioning and styling new Image elements, make sure to take into account the layout context around it to make it fit correctly.
 - If an image element already has a src URL from openai, avoid regenerating the image
-- If the user does not specify any page styles, infer what style they want based on what you are doing. Remember for visual clarity we need padding. If the current page style css is empty, add a suitable style.
+- If the user does not specify any page styles, infer what style they want based on what you are doing and attempt to properly align all elements. Remember for visual clarity we need padding. If the current page style css is empty, add a suitable style.
 - Use built-in modals instead of alerts where applicable
 - Never clear the entire body, only the content within the canvas element
-- If you are writing permanent app functionality like attaching events or other stateful features the user might request, modify the codeContainer.innerText value with changes or additions, keep any existing permanent code in mind while modifying.
+- If you write app runtime functionality like attaching events or other stateful features the user might request, update codeContainer.innerText with changes or additions, keep any existing permanent code in mind while modifying.
 - If the user asks to scroll the page you are actually scrolling the div#canvas element
 - Only use your code from the chat history as a reference, avoiding re-generating things which are not essential to the current user request.
-- Make sure to rewrite your directives variable if the user wants you to change the goal or objective of your conversation.
-- Use an anonymous function closure and IIFE to enclose your code in a function which will not pollute the namespace.
+- Make sure to rewrite your directives variable if the user wants you to change the goal or objective of your conversation. If directives are empty try to infer them from known user messages.
+- Use an anonymous async function closure and IIFE to enclose your code in a function which will not pollute the namespace.
+- If you define variables or functions which should be global context required across scripts or parts of the application, add those functions outside the closure at the bottom to instantiate them into the global space where event scripts can access them.
         `;
     
         // Prepare API Request
@@ -465,9 +492,9 @@ The following variables are already declared:
         };
         console.log('System Prompt:', systemPrompt);
     
-        // Call OpenAI API
+        // Call OpenAI compatible API endpoint
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            const response = await fetch(`${llmServer}/v1/chat/completions`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -483,28 +510,22 @@ The following variables are already declared:
             let code = '';
             let assistantComment = '';
     
-            // Extract JavaScript code from the assistant's response
-            const codeMatch = assistantMessage.match(/```javascript\n([\s\S]*?)\n```/);
-            if (codeMatch && codeMatch[1]) {
-                code = codeMatch[1];
-    
-                // Wrap the code in a try/catch block
+            // Extract all JavaScript code blocks from the assistant's response
+            const codeMatches = [...assistantMessage.matchAll(/```javascript\n([\s\S]*?)\n```/g)];
+            if (codeMatches.length > 0) {
+                // Concatenate all JavaScript code blocks
+                const concatenatedCode = codeMatches.map(match => match[1]).join('\n');
+
+                // Wrap the concatenated code in a try/catch block
                 const wrappedCode = `
 try {
-    ${code}
+    ${concatenatedCode}
 } catch (e) {
     textToSpeech("Error: " + e.message);
     console.log(e);
 }
                 `;
-    
-                // Extract text before and after the code block for comments
-                const beforeCodeMatch = assistantMessage.match(/^(.*?)```javascript/);
-                const afterCodeMatch = assistantMessage.match(/```javascript[\s\S]*?```(.*)$/);
-    
-                const beforeCode = beforeCodeMatch ? beforeCodeMatch[1].trim() : '';
-                const afterCode = afterCodeMatch ? afterCodeMatch[1].trim() : '';
-    
+
                 // Identify comments intended for speech synthesis
                 const commentRegex = /^### Comment\s*([\s\S]*?)(?=###|```|$)/gm;
 
@@ -514,13 +535,14 @@ try {
                 while ((match = commentRegex.exec(assistantMessage)) !== null) {
                     assistantComment = match[1].trim();
                 }
-        
+
                 // Execute the wrapped code within a script tag
                 const script = document.createElement('script');
                 script.textContent = wrappedCode;
                 document.body.appendChild(script);
                 document.body.removeChild(script);
-            }else{
+            } else {
+                // If no JavaScript code blocks are found, extract the comment directly
                 assistantComment = assistantMessage.replace("### Comment", "").trim();
             }
     
@@ -643,8 +665,9 @@ try {
                                     audio.pause();
                                     audio.currentTime = 0;
                                     console.log('Interrupted current audio playback due to detected speech.');
+                                }else{
+                                    startRecording();
                                 }
-                                // startRecording();
                             }
                         } else {
                             speechStart = null;
@@ -772,6 +795,45 @@ try {
         return data.text;
     }
 
+    // Global Variables for Speech Queue
+    let speechQueue = [];
+    let isSpeaking = false;
+
+    // Function to process the speech queue
+    function processSpeechQueue() {
+        if (isSpeaking || speechQueue.length === 0) {
+            return;
+        }
+
+        isSpeaking = true;
+        const nextAudioUrl = speechQueue.shift();
+
+        if (!audio) {
+            audio = new Audio();
+        }
+
+        audio.src = nextAudioUrl;
+
+        audio.onended = () => {
+            isSpeaking = false;
+            resumeSpeechRecognition();
+            processSpeechQueue();
+        };
+
+        audio.onerror = (e) => {
+            console.error('Audio playback error:', e);
+            isSpeaking = false;
+            resumeSpeechRecognition();
+            processSpeechQueue();
+        };
+
+        // Pause speech recognition when audio starts
+        pauseSpeechRecognition();
+
+        // Play the audio
+        audio.play();
+    }
+
     // Function to convert text to speech with audio management
     async function textToSpeech(text, voice = 'alloy') {
         const MAX_CHAR = 4096;
@@ -837,35 +899,10 @@ try {
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
 
-            // Manage global audio playback
-            if (audio && !audio.paused) {
-                audio.pause();
-                audio.currentTime = 0;
-                console.log('Existing audio playback stopped for new speech.');
-            } else if (!audio) {
-                // Initialize global audio if not already defined
-                audio = new Audio();
-            }
+            // Enqueue the speech
+            speechQueue.push(audioUrl);
+            processSpeechQueue();
 
-            // Set the new audio source
-            audio.src = audioUrl;
-
-            // Pause speech recognition when audio starts
-            audio.addEventListener('play', () => {
-                console.log('Audio playback started.');
-            }, { once: true });
-
-            // Resume speech recognition when audio ends
-            audio.addEventListener('ended', () => {
-                console.log('Audio playback ended.');
-                resumeSpeechRecognition();
-            }, { once: true });
-
-            // Make sure it doesn't hear itself
-            pauseSpeechRecognition();
-
-            // Play the audio
-            audio.play();
         } catch (error) {
             console.error('Error synthesizing speech:', error);
             throw error;
@@ -889,6 +926,15 @@ try {
             listenContinuously();
         }
     }    
+
+    // Function to set progress bar
+    function setProgressBar(percent) {
+        const progressBar = document.getElementById('progress-bar');
+        if (progressBar) {
+            progressBar.style.width = percent + '%';
+        }
+    }
+
 </script>
 </body>
 </html>
