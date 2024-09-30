@@ -23,7 +23,7 @@
             overflow: auto;
         }
         #message-bar {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
@@ -116,7 +116,7 @@
             Ibis
         </h1>
         <p style="font-size: 16px; margin-bottom: 30px; max-width: 600px;">
-            Experience a revolutionary, hands-free way to interact with the web using the latest in generative multimedia technology.
+            Experience a revolutionary, hands-free way to interact with the web using the latest in generative multimedia technology. You build, you use.
         </p>
         
         <!-- Getting Started Examples -->
@@ -143,8 +143,8 @@
             <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                 <span style="font-size: 24px;">🎮</span>
                 <div>
-                    <h3 style="margin: 0 0 5px 0;">Play Interactive Games</h3>
-                    <p style="margin: 0;">"Integrate a simple interactive game like Tic-Tac-Toe."</p>
+                    <h3 style="margin: 0 0 5px 0;">Play Games you Make</h3>
+                    <p style="margin: 0;">"Design a scrabble clone with all the features. We should play together."</p>
                 </div>
             </div>
             
@@ -152,8 +152,8 @@
             <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                 <span style="font-size: 24px;">🔄</span>
                 <div>
-                    <h3 style="margin: 0 0 5px 0;">Translate Web Content</h3>
-                    <p style="margin: 0;">"Add a feature to translate the page content into Spanish."</p>
+                    <h3 style="margin: 0 0 5px 0;">Interactive Translation</h3>
+                    <p style="margin: 0;">"Translate everything I say into a blog entry in French. Automatically organize the content."</p>
                 </div>
             </div>
             
@@ -162,7 +162,7 @@
                 <span style="font-size: 24px;">📚</span>
                 <div>
                     <h3 style="margin: 0 0 5px 0;">Browse a Custom Wiki</h3>
-                    <p style="margin: 0;">"Create a fake Wikipedia page about a fictional topic."</p>
+                    <p style="margin: 0;">"Design an alternate universe Wikipedia clone where everything is made of pizza."</p>
                 </div>
             </div>
             
@@ -171,7 +171,7 @@
                 <span style="font-size: 24px;">📖</span>
                 <div>
                     <h3 style="margin: 0 0 5px 0;">Learn Programming Languages</h3>
-                    <p style="margin: 0;">"Add an interactive Rust coding tutorial with examples."</p>
+                    <p style="margin: 0;">"Show me an interactive Rust coding tutorial with examples."</p>
                 </div>
             </div>
         </div>
@@ -428,6 +428,11 @@
     async function sendMessage(userMessageInput) {
         const userMessage = userMessageInput ? userMessageInput.trim() : messageInput.value.trim();
         if (!userMessage || !apiKey) return;
+
+        wc = document.getElementById('welcome-container');
+        if (wc){
+            wc.remove();
+        }
     
         sendButton.disabled = true;
         spinner.style.display = 'block';
@@ -549,7 +554,6 @@ The following variables are already declared:
 ### Coding Instructions
 - If you say you will do something, do it. If the user ask them to show you something, they mean on the page.
 - Only ever write JavaScript code.
-- On your first interaction make sure to remove #welcome-container
 - Use only standard JavaScript and DOM APIs.
 - External libraries may be used, but stick to known CDNs. When adding the <script> element, add it as a child of div#canvas in the right spot so that it gets packaged if this app is saved.
 - For adding external libraries, make sure you send the proper mime type with the request to avoid CORS issues.
@@ -629,7 +633,10 @@ The following variables are already declared:
 try {
     ${concatenatedCode}
 } catch (e) {
-    textToSpeech("Error: " + e.message);
+    textToSpeech("Attempting to fix the error: " + e.message);
+    setTimeout(() => {
+        sendMessage("Your code has an error, please fix. Error: " + e.message);
+    }, 1000);
     console.log(e);
 }
                 `;
