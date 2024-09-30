@@ -451,6 +451,7 @@
         }
     
         console.log('User Message:', userMessage);
+        setProgressBar(0);
     
         // Load existing page content and style
         let pageContent = document.querySelector('#canvas').innerHTML;
@@ -574,7 +575,8 @@ The following variables are already declared:
 - putting something full screen or taking up the whole space, only is ever referring to takig up the whole page content area.
 - Any elements you generate should have a unique id.
 - If modifying an existing element, reference it by its id.
-- Avoid duplicating content by properly identifying content the user has already created and alter it. You can do this by first probing to see if an element already exists.
+- If there is already content on page, avoid trying to initialize it again, it's already there.
+- Deduplicate content that is obviously repeating on the page, or don't duplicate it in the first place.
 - Avoid dumping strings into innerHTML properties unless necessary.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
 - Use generateImage if a user requests an image unless they specify a URL.
