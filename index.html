@@ -116,10 +116,11 @@
             Ibis
         </h1>
         <p style="font-size: 16px; margin-bottom: 30px; max-width: 600px;">
-            Experience a revolutionary, hands-free way to interact with the web using the latest in generative multimedia technology. You build, you use.
+            Experience a revolutionary, hands-free way to interact with the web using the latest in generative multimedia technology. You build, you use. Here are some examples...
         </p>
         
         <!-- Getting Started Examples -->
+        <!-- IMPORTANT Note for Ibis: if you use these examples in your first response, be sure to make the buttons send yourself a message with the example message. -->
         <div style="display: flex; flex-direction: column; gap: 15px; max-width: 800px; width: 100%; height: 350px; overflow-y: auto;">
             <!-- Example 1 -->
             <div style="display: flex; align-items: center; gap: 10px; padding: 15px; background-color: #f0f4f8; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
@@ -208,17 +209,63 @@
         <div style="position: relative; width: 80%; max-width: 400px; margin: 100px auto; background: white; padding: 20px; border-radius: 8px;">
             <h2>Welcome to Ibis</h2>
             <p>You can obtain your OpenAI API key from the <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI Dashboard</a>.</p>
+            <!-- API Key Label with Info Icon -->
+            <div style="position: relative; display: flex; align-items: center; margin-bottom: 5px;">
+                <label for="api-key-input" style="flex: 1;">API Key:</label>
+                <!-- Info Icon -->
+                <button id="api-key-info-button" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 5px;">
+                    <i color="#007BFF">PRIVACY</i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#007BFF" viewBox="0 0 16 16">
+                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.93 12.588c-.478 0-.857-.32-.857-.749 0-.43.379-.75.857-.75.478 0 .857.32.857.75 0 .429-.379.749-.857.749zm1.07-5.588c0 .552-.45 1-1 1H7c-.552 0-1-.448-1-1V4c0-.552.448-1 1-1h1c.552 0 1 .448 1 1v3z"/>
+                    </svg>
+                </button>
+                <!-- Tooltip -->
+                <div id="api-key-tooltip" style="display: none; position: absolute; top: 25px; right: 0; width: 250px; background-color: #333; color: #fff; padding: 10px; border-radius: 4px; font-size: 14px; z-index: 1001;">
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li><strong>Standalone:</strong> Ibis runs entirely in your browser, with no need for a server.</li>
+                        <li><strong>Serverless:</strong> Everything happens on your device, meaning faster performance.</li>
+                        <li><strong>Privacy Protection:</strong> Your personal data stays with you and never leaves your device.</li>
+                        <li><strong>Security:</strong> No information is sent or stored on external servers, reducing the risk of hacks.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- API Key Input -->
+            <input type="password" id="api-key-input" style="width: 100%; padding: 10px; box-sizing: border-box; margin-bottom:1em;" placeholder="sk-...">
             
-            <label for="api-key-input" style="display: block; margin-bottom: 5px;">API Key:</label>
-            <input type="text" id="api-key-input" style="width: 100%; padding: 10px; box-sizing: border-box;" placeholder="sk-...">
-            <p style="margin-bottom: 15px;"><small><i>If you are using a local LLM, you may leave API key blank or use what your local LLM instructs</i></small></p>
-            
-            <label for="llm-server-input" style="display: block; margin-bottom: 5px;">LLM Server URL:</label>
-            <input type="text" id="llm-server-input" style="width: 100%; padding: 10px; margin-bottom: 20px; box-sizing: border-box;" placeholder="https://api.openai.com" value="https://api.openai.com">
-            
-            <p><b><small>Ibis is serverless and runs from your browser. API keys only get used for encrypting requests to AI services directly.</small></b></p>
-            <button id="save-api-key-button" style="padding: 10px 20px;">Begin</button>
-            <span style="float: right;"><small><a href="https://github.com/lks-ai/ibis" target="_blank">Learn More about Ibis</a></small></p></span>
+            <!-- Local Server for Local LLM config -->
+            <div id="local-server" style="display: none;">
+                <label for="llm-server-input" style="display: block; margin-bottom: 5px;">LLM Server Address:</label>
+                <input type="text" id="llm-server-input" style="width: 100%; padding: 10px; margin-bottom: 20px; box-sizing: border-box;" placeholder="https://api.openai.com" value="https://api.openai.com">
+                <label for="llm-model-input" style="display: block; margin-bottom: 5px;">LLM Model (or model path):</label>
+                <input type="text" id="llm-model-input" style="width: 100%; padding: 10px; margin-bottom: 20px; box-sizing: border-box;" placeholder="mistral" value="gpt-4o">
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 0.7em;"><small><button onclick="document.getElementById('local-server').style='display: block'; this.style='display:none';">Use a different Service</button></small></div>
+            <div>
+                <button id="save-api-key-button" style="padding: 10px 20px; border-radius: 8px; color: white; font-size: 1em; background-color:#007BFF"><b>Begin</b></button>
+                <span style="float: right;"><small><a href="https://github.com/lks-ai/ibis" target="_blank">Learn More about Ibis</a></small></p></span>
+            </div>
+
+            <!-- Tooltip JavaScript -->
+            <script>
+                // Get elements
+                const apiKeyInfoButton = document.getElementById('api-key-info-button');
+                const apiKeyTooltip = document.getElementById('api-key-tooltip');
+
+                // Toggle tooltip visibility on button click
+                apiKeyInfoButton.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent event from bubbling up
+                    apiKeyTooltip.style.display = apiKeyTooltip.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // Hide tooltip when clicking outside
+                document.addEventListener('click', (event) => {
+                    if (!apiKeyInfoButton.contains(event.target) && !apiKeyTooltip.contains(event.target)) {
+                        apiKeyTooltip.style.display = 'none';
+                    }
+                });
+            </script>            
+
         </div>
     </div>
 </div>
@@ -228,6 +275,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     let apiKey = urlParams.get('apiKey') || '';
     let llmServer = urlParams.get('server')  || 'https://api.openai.com';
+    let llmModel = urlParams.get('model') || 'gpt-4o';
 
     // DOM Elements
     const canvas = document.getElementById('canvas');
@@ -238,15 +286,22 @@
     const spinner = document.getElementById('spinner');
     const apiKeyModal = document.getElementById('api-key-modal');
     const apiKeyInput = document.getElementById('api-key-input');
+    const llmServerInput = document.getElementById('llm-server-input');
+    const llmModelInput = document.getElementById('llm-model-input')
     const saveApiKeyButton = document.getElementById('save-api-key-button');
     const styleElement = document.getElementById('core-styles');
     const codeContainer = document.getElementById('ibis-script-container');
 
+    // Global variables for Ibis
     let audio = null;
     let selectedElement = null;
     let messageHistory = [];
     let elementMap = {}; // Map of element IDs to their descriptions and code
     let elementEmbeddings = {}; // Map of element IDs to their embeddings
+
+    // Error counting
+    let hadError = false;
+    let erorrCount = 0;
     
     // Directives
     let directives = null;
@@ -270,7 +325,8 @@
     // Save API Key
     saveApiKeyButton.addEventListener('click', () => {
         apiKey = apiKeyInput.value.trim();
-        llmServer = document.getElementById('llm-server-input').value.trim() || 'https://api.openai.com';
+        llmServer = llmServerInput.value.trim() || llmServer;
+        llmModel = llmModelInput.value.trim() || llmModel;
         if (apiKey) {
             apiKeyModal.style.display = 'none';
         }
@@ -281,31 +337,373 @@
     highlightOverlay.className = 'highlight-overlay';
     document.body.appendChild(highlightOverlay);
 
-    // Select and Deselect Elements
-    canvas.addEventListener('click', (event) => {
-        if (event.target !== canvas && !messageBar.contains(event.target)) {
-            if (selectedElement) {
-                // Remove previous highlight
-                highlightOverlay.style.display = 'none';
-            }
-            selectedElement = event.target;
+    /**
+    * Determines if the given element is editable and can handle rich content.
+    * @param {HTMLElement} elem - The element to check.
+    * @returns {boolean} - True if the element is editable and supports rich content, false otherwise.
+    */
+    function isRichEditableElement(elem) {
+        if (!elem) return false;
 
-            // Position the highlight overlay over the selected element
-            const rect = selectedElement.getBoundingClientRect();
-            highlightOverlay.style.width = rect.width + 'px';
-            highlightOverlay.style.height = rect.height + 'px';
-            highlightOverlay.style.left = rect.left + 'px';
-            highlightOverlay.style.top = rect.top + 'px';
-            highlightOverlay.style.display = 'block';
+        // Check if the element is contenteditable
+        if (elem.isContentEditable) return true;
 
-            console.log('Selected Element:', selectedElement);
+        // List of input types that can handle rich content (extend this list if needed)
+        const richInputTags = ['TEXTAREA', 'INPUT']; // Add other tags like 'DIV' if necessary
+
+        if (!richInputTags.includes(elem.tagName.toUpperCase())) return true;
+
+        return false;
+    }
+
+    /**
+    * Determines if the given element is a media element.
+    * @param {HTMLElement} elem - The element to check.
+    * @returns {boolean} - True if the element is a media element, false otherwise.
+    */
+    function isMediaElement(elem) {
+        if (!elem) return false;
+
+        const mediaTags = ['IMG', 'VIDEO', 'AUDIO', 'CANVAS', 'SVG', 'OBJECT', 'EMBED', 'IFRAME'];
+        return mediaTags.includes(elem.tagName);
+    }
+
+    /**
+    * Provides user feedback via speech synthesis or alerts.
+    * @param {string} message - The message to convey to the user.
+    * @param {string} voiceType - The type of voice to use (e.g., 'alloy', 'echo').
+    */
+    function provideFeedback(message, voiceType) {
+        if (typeof textToSpeech === 'function') {
+            textToSpeech(message, voiceType).catch(err => {
+                console.error('Speech synthesis failed:', err);
+                alert(message);
+            });
         } else {
-            if (selectedElement) {
-                highlightOverlay.style.display = 'none';
-                selectedElement = null;
+            alert(message);
+        }
+    }
+
+    /**
+    * Handles pasting rich content into the specified editable element.
+    * 
+    * @param {HTMLElement} elem - The element where the content will be pasted.
+    */
+    async function handlePasteRichContent(elem) {
+        if (!elem) return;
+
+        try {
+            // Check if the Clipboard API is supported
+            if (!navigator.clipboard || !navigator.clipboard.read) {
+                throw new Error('Clipboard API not supported.');
+            }
+
+            // Read clipboard contents
+            const clipboardItems = await navigator.clipboard.read();
+            for (const item of clipboardItems) {
+                for (const type of item.types) {
+                    if (type.startsWith('text/')) {
+                        const blob = await item.getType(type);
+                        const text = await blob.text();
+
+                        if (elem.tagName === 'TEXTAREA') {
+                            // For textarea, append the text value
+                            elem.value += text;
+                        } else {
+                            // For contenteditable elements, insert HTML content safely
+                            // Optional: Implement sanitization here to prevent XSS
+                            elem.innerHTML += text;
+                        }
+                    } else if (type.startsWith('image/')) {
+                        const blob = await item.getType(type);
+                        const imgURL = URL.createObjectURL(blob);
+                        insertImageIntoElement(imgURL, elem);
+                    }
+                    // Add more type handlers if necessary (e.g., video/, audio/, etc.)
+                }
+            }
+
+            // Provide success feedback
+            provideFeedback('Content pasted successfully!', 'alloy');
+        } catch (err) {
+            console.error('Failed to read clipboard contents:', err);
+            provideFeedback('Unable to paste content. Please ensure you have granted clipboard permissions.', 'echo');
+        }
+    }
+
+    /**
+    * Handles the drop event by processing the dropped data and updating the element.
+    * @param {DragEvent} e 
+    * @param {HTMLElement} elem 
+    */
+    async function handleDrop(e, elem) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            for (const file of files) {
+                await processFileDrop(file, elem);
+            }
+        } else {
+            // Handle non-file drops (e.g., text, HTML)
+            const text = dt.getData('text/plain') || dt.getData('text/html');
+            if (text) {
+                insertTextIntoElement(text, elem);
             }
         }
-    });
+    }
+
+    /**
+    * Processes a dropped file based on its mime type and updates the element accordingly.
+    * @param {File} file 
+    * @param {HTMLElement} elem 
+    */
+    async function processFileDrop(file, elem) {
+        const mimeType = file.type;
+
+        try {
+            if (mimeType.startsWith('image/')) {
+                const imgURL = URL.createObjectURL(file);
+                if (elem.tagName === 'IMG') {
+                    elem.src = imgURL;
+                } else {
+                    insertImageIntoElement(imgURL, elem);
+                }
+                provideFeedback('Image uploaded successfully!', 'alloy');
+            } else if (mimeType.startsWith('video/')) {
+                const videoURL = URL.createObjectURL(file);
+                if (elem.tagName === 'VIDEO') {
+                    elem.src = videoURL;
+                    elem.load();
+                } else {
+                    insertVideoIntoElement(videoURL, elem);
+                }
+                provideFeedback('Video uploaded successfully!', 'alloy');
+            } else if (mimeType.startsWith('audio/')) {
+                const audioURL = URL.createObjectURL(file);
+                if (elem.tagName === 'AUDIO') {
+                    elem.src = audioURL;
+                    elem.load();
+                } else {
+                    insertAudioIntoElement(audioURL, elem);
+                }
+                provideFeedback('Audio uploaded successfully!', 'alloy');
+            } else if (mimeType === 'text/plain' || mimeType === 'text/html') {
+                const text = await file.text();
+                insertTextIntoElement(text, elem);
+                provideFeedback('Text content pasted successfully!', 'alloy');
+            } else {
+                provideFeedback(`Unsupported file type: ${mimeType}`, 'echo');
+                console.warn(`Unsupported file type: ${mimeType}`);
+            }
+        } catch (error) {
+            console.error('Error processing dropped file:', error);
+            provideFeedback('Failed to upload content. Please try again.', 'echo');
+        }
+    }
+
+    /**
+    * Inserts an image into a non-IMG element by creating an IMG tag.
+    * @param {string} imgURL 
+    * @param {HTMLElement} elem 
+    */
+    function insertImageIntoElement(imgURL, elem) {
+        const img = document.createElement('img');
+        img.src = imgURL;
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '8px';
+        elem.innerHTML = ''; // Clear existing content
+        elem.appendChild(img);
+    }
+
+    /**
+    * Inserts a video into a non-VIDEO element by creating a VIDEO tag.
+    * @param {string} videoURL 
+    * @param {HTMLElement} elem 
+    */
+    function insertVideoIntoElement(videoURL, elem) {
+        const video = document.createElement('video');
+        video.src = videoURL;
+        video.controls = true;
+        video.style.maxWidth = '100%';
+        video.style.borderRadius = '8px';
+        elem.innerHTML = ''; // Clear existing content
+        elem.appendChild(video);
+    }
+
+    /**
+    * Inserts an audio element into a non-AUDIO element by creating an AUDIO tag.
+    * @param {string} audioURL 
+    * @param {HTMLElement} elem 
+    */
+    function insertAudioIntoElement(audioURL, elem) {
+        const audio = document.createElement('audio');
+        audio.src = audioURL;
+        audio.controls = true;
+        audio.style.width = '100%';
+        elem.innerHTML = ''; // Clear existing content
+        elem.appendChild(audio);
+    }
+
+    /**
+    * Inserts text into an editable element.
+    * @param {string} text 
+    * @param {HTMLElement} elem 
+    */
+    function insertTextIntoElement(text, elem) {
+        if (elem.tagName === 'TEXTAREA') {
+            elem.value += text;
+        } else {
+            // Optional: Sanitize HTML if inserting into innerHTML
+            elem.innerHTML += text;
+        }
+    }
+
+    /**
+    * Highlights the drop area.
+    * @param {HTMLElement} elem 
+    */
+    function highlight(elem) {
+        elem.style.border = '2px dashed #007BFF';
+        elem.style.backgroundColor = '#f0f8ff';
+    }
+
+    /**
+    * Removes highlight from the drop area.
+    * @param {HTMLElement} elem 
+    */
+    function unhighlight(elem) {
+        elem.style.border = '';
+        elem.style.backgroundColor = '';
+    }
+
+    /**
+    * Attaches paste and drag-and-drop event listeners to the specified element.
+    * @param {HTMLElement} elem - The element to attach event listeners to.
+    */
+    function attachEventListeners(elem) {
+        // Keyboard Paste Handler
+        const pasteHandler = async function(event) {
+            // Detect Ctrl+V (Windows/Linux) and Cmd+V (Mac)
+            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            const pasteKey = isMac ? (event.metaKey && (event.key === 'v' || event.key === 'V')) : (event.ctrlKey && (event.key === 'v' || event.key === 'V'));
+
+            if (pasteKey) {
+                event.preventDefault(); // Prevent the default paste behavior
+                await handlePasteRichContent(elem);
+            }
+        };
+
+        // Drag-and-Drop Handlers
+        const dragOverHandler = function(e) {
+            e.preventDefault();
+            highlight(elem);
+        };
+
+        const dragLeaveHandler = function(e) {
+            e.preventDefault();
+            unhighlight(elem);
+        };
+
+        const dropHandler = async function(e) {
+            e.preventDefault();
+            unhighlight(elem);
+            await handleDrop(e, elem);
+        };
+
+        // Attach Event Listeners
+        elem.addEventListener('keydown', pasteHandler);
+        elem.addEventListener('dragover', dragOverHandler);
+        elem.addEventListener('dragleave', dragLeaveHandler);
+        elem.addEventListener('drop', dropHandler);
+
+        // Store the handlers for future removal
+        elem._pasteHandler = pasteHandler;
+        elem._dragOverHandler = dragOverHandler;
+        elem._dragLeaveHandler = dragLeaveHandler;
+        elem._dropHandler = dropHandler;
+    }
+
+    /**
+    * Removes paste and drag-and-drop event listeners from the specified element.
+    * @param {HTMLElement} elem - The element to remove event listeners from.
+    */
+    function removeEventListeners(elem) {
+        if (!elem) return;
+
+        // Remove Event Listeners if they exist
+        if (elem._pasteHandler) {
+            elem.removeEventListener('keydown', elem._pasteHandler);
+            delete elem._pasteHandler;
+        }
+        if (elem._dragOverHandler) {
+            elem.removeEventListener('dragover', elem._dragOverHandler);
+            delete elem._dragOverHandler;
+        }
+        if (elem._dragLeaveHandler) {
+            elem.removeEventListener('dragleave', elem._dragLeaveHandler);
+            delete elem._dragLeaveHandler;
+        }
+        if (elem._dropHandler) {
+            elem.removeEventListener('drop', elem._dropHandler);
+            delete elem._dropHandler;
+        }
+    }
+
+    /**
+    * Initializes drag-and-drop and paste functionalities for the Ibis app.
+    * Sets up dynamic event handling based on user interactions.
+    */
+    function initializeIbisApp() {
+        // Select and Deselect Elements with Dynamic Event Handling
+        canvas.addEventListener('click', (event) => {
+            if (event.target !== canvas && !messageBar.contains(event.target)) {
+                if (selectedElement) {
+                    // Remove previous highlight
+                    highlightOverlay.style.display = 'none';
+
+                    // Remove event listeners from the previously selected element
+                    removeEventListeners(selectedElement);
+                }
+                selectedElement = event.target;
+
+                // Position the highlight overlay over the selected element
+                const rect = selectedElement.getBoundingClientRect();
+                highlightOverlay.style.width = rect.width + 'px';
+                highlightOverlay.style.height = rect.height + 'px';
+                highlightOverlay.style.left = rect.left + 'px';
+                highlightOverlay.style.top = rect.top + 'px';
+                highlightOverlay.style.display = 'block';
+
+                console.log('Selected Element:', selectedElement);
+
+                // Attach event listeners to the newly selected element if applicable
+                if (isRichEditableElement(selectedElement) || isMediaElement(selectedElement)) {
+                    attachEventListeners(selectedElement);
+                }
+            } else {
+                if (selectedElement) {
+                    highlightOverlay.style.display = 'none';
+                    removeEventListeners(selectedElement);
+                    selectedElement = null;
+                }
+            }
+        });
+
+        // Optional: Attach paste button functionality if it exists
+        const pasteButton = document.getElementById('paste-button');
+        if (pasteButton) {
+            pasteButton.addEventListener('click', function() {
+                const focusedElement = document.activeElement;
+                if (isRichEditableElement(focusedElement) || isMediaElement(focusedElement)) {
+                    handlePasteRichContent(focusedElement);
+                }
+            });
+        }
+    }
+
+    // Call the initialization function when the DOM is ready
+    document.addEventListener('DOMContentLoaded', initializeIbisApp);
 
     // Send Message
     sendButton.addEventListener('click', () => sendMessage());
@@ -429,11 +827,6 @@
         const userMessage = userMessageInput ? userMessageInput.trim() : messageInput.value.trim();
         if (!userMessage || !apiKey) return;
 
-        wc = document.getElementById('welcome-container');
-        if (wc){
-            wc.remove();
-        }
-    
         sendButton.disabled = true;
         spinner.style.display = 'block';
     
@@ -465,7 +858,7 @@
         // Prepare System Prompt
         let systemPrompt = `
 ## Identity
-You are an HTML and DOM manipulation expert named Ibis who's tasked with modifying elements on the page. You operate under the new user interface paradigm "What you ask is what you get"; a new paradigm where the user interface is interacted with through the latest voice activated technologies. Automatic transcription and vocal feedback are assumed because you are an advanced multimedia generative interface. Guide them visually. Show off.
+You are a masterful web designer named Ibis who's tasked with modifying elements on the page instantly. You operate under the new user interface paradigm "What you ask is what you get"; a new paradigm where the user interface is interacted with through the latest voice activated technologies. Automatic transcription and vocal feedback are assumed because you are an advanced multimedia generative interface. Guide them visually. Show off.
 You were created by a UK company LK Studio.
 
 ## Motivation
@@ -522,6 +915,18 @@ ${directives}
 
 Try to guess what the user is implying and code for that.
 
+### What the User may not Know
+- They can ask you anything
+- Whatever they select (focusedElement) is just like pointing something out to you visually and that is why it's outlined in green
+- They can drag and drop or paste videos, audio, images, text and any type of file in the focused element
+- They can edit any text on the focused element
+- Can click the microphone at the bottom of the page to go into hands-free mode
+- You can read anything aloud to them
+- You can do way more than they might imagine
+
+### You should Know
+- The user message is what they are saying or typing
+
 ### Important Global JavaScript Variables
 The following variables are already declared:
 - canvas: The main div that holds the page content. This is what the user means by the page or content because this is what they are perceiving rather than the whole HTML of the page.
@@ -535,6 +940,8 @@ The following variables are already declared:
 - async toggleHandsFreeMode(): use this function within interface elements to allow the user to change the global hands-free mode on or off.
 - generateImage(prompt): call this async function to generate an image. You need to write the prompt and it returns a URL you can place in a new image element.
 - textToSpeech(text, voice): call this function if you wish to speak directly to the user with an important comment, tip or update about something, even as part of some app you are building together. Keep comments concise yet informative. two sentences max. voice defaults to "alloy" but use known voices for effect. voice can be "alloy", "fable", "onyx", "shimmer", "nova" or "echo".
+- getEmbedding(text): a utility function for adding advanced querying capabilities to the app. This gets the openAI ada embedding for given text. You can add semantic search to anything!
+- cosineSimilarity(vector_a, vector_b): a utility function you can use to create in-memory vector stores for adding advanced natural language capabilities to the app or anything that uses vectors that should be compared with cosine similarity.
 - sendMessage(message): use this function only for button onclick events. It allows the user to send you whatever message you place as the argument. Use it when the user wants to click something to send you a signal for instance which might be listed in your directives.
 - setProgressBar(percentage): use this to visually display progress of any process. include in your code when applicable like long async functions with multiple steps.
 
@@ -551,6 +958,7 @@ The following variables are already declared:
 - Meet the user at their level. Speak at their same level and provide visual aid if necessary.
 - If there is nothing on the page, and the user is perplexed, instead of asking them what they'd like to do, give them some creative options.
 - On your first interaction suggest next steps based on what they had you do. Base your steps in predictive behavioral logic for web users.
+- If in your code you've already used textToSpeech avoid repeating a comment you might already say in the code you generate. Your comment is played instantly after reply while textToSpeech runs asynchronously with the code.
 
 ### Coding Instructions
 - If you say you will do something, do it. If the user ask them to show you something, they mean on the page.
@@ -559,7 +967,9 @@ The following variables are already declared:
 - External libraries may be used, but stick to known CDNs. When adding the <script> element, add it as a child of div#canvas in the right spot so that it gets packaged if this app is saved.
 - For adding external libraries, make sure you send the proper mime type with the request to avoid CORS issues.
 - Always code to production ready standards.
+- Write complete code and think about Quality of Life features for the interface. For example: if you make a form with a button, add events to inputs so that the user can simply press enter to submit.
 - When coding for an API, be sure to handle errors by commenting them to the user then using sendMessage to send yourself a message asking to fix the error in your code.
+- You may also handle errors in try/catch blocks in your code the same way.
 - If the user mentions how to treat what they say or when they talk, remember, the user input is already transcribed from their speech.
 - Always assume that voice transcription, speech-recognition, speech to text and advanced AI capabilities are fully integrated already to the interface, avoid coding these functionalities and instead use global interface functions where necessary.
 - Always write fully functional interface, including back-end support if necessary. Avoid writing simulations of apps or toy apps unless that is what the user explicity requests.
@@ -575,11 +985,12 @@ The following variables are already declared:
 - putting something full screen or taking up the whole space, only is ever referring to takig up the whole page content area.
 - Any elements you generate should have a unique id.
 - If modifying an existing element, reference it by its id.
+- If an element text should be editable, make it editable, but be sure to revert it to static when saving or downloading the app.
 - If there is already content on page, avoid trying to initialize it again, it's already there.
 - Deduplicate content that is obviously repeating on the page, or don't duplicate it in the first place.
 - Avoid dumping strings into innerHTML properties unless necessary.
 - Focus on what changes need to be made to the page content when writing your code, instead of always completely replacing it.
-- Use generateImage if a user requests an image unless they specify a URL.
+- Use generateImage if you are doing something creative or if a user requests an image unless they specify a URL. Lately a lot of cdns have been paywalled due to AI.
 - Sprinkle in the setProgressBar function to provide visual feedback on the progress percentage of the task up to 100. Make sure to comment you are working on something and they can see your progress at the bottom of screen and use present participle verbiage in your comment. Remember to set it to 100 at the end of the task.
 - When positioning and styling new Image elements, make sure to take into account the layout context around it to make it fit correctly.
 - If an image element already has a src URL from openai, avoid regenerating the image
@@ -589,16 +1000,32 @@ The following variables are already declared:
 - Always use global scope variables when creating timers or loops with setTimeout and setInterval so that you can access them again.
 - Never clear the entire body, only the content within the canvas element
 - If you write app runtime functionality like attaching events or other stateful features the user might request, update codeContainer.innerText with changes or additions, keep any existing permanent code in mind while modifying.
-- If the user asks to scroll the page you are actually scrolling the div#canvas element
+- If the user asks to scroll the page you are actually scrolling the div#canvas element, make sure to give them visual controls that look modern.
 - Only use your code from the chat history as a reference, avoiding re-generating things which are not essential to the current user request.
 - Make sure to rewrite your directives variable if the user wants you to change the goal or objective of your conversation. If directives are empty try to infer them from known user messages.
 - Use an anonymous async function closure and IIFE to enclose your code in a function which will not pollute the namespace.
 - If you define variables or functions which should be global context required across scripts or parts of the application, add those functions outside the closure at the bottom to instantiate them into the global space where event scripts can access them.
         `;
+
+        // Clear the Welcome screen
+        wc = document.getElementById('welcome-container');
+        if (wc){
+            wc.remove();
+        }
+
+        // Handle Error Mitigation
+        if (!hadError){
+            errorCount = 0;
+        }else{
+            if (errorCount > 3){
+                return; // Abort if we've already gone too far!
+            }
+        }
+        hadError = false;
     
         // Prepare API Request
         const requestBody = {
-            model: 'gpt-4o',
+            model: llmModel,
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userMessage }
@@ -1057,6 +1484,67 @@ try {
             progressBar.style.width = percent + '%';
         }
     }
+
+    // Error Mitigation //
+
+    // Function to gather enhanced environment info
+    function getEnhancedInfo() {
+        return {
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    // Catch synchronous errors
+    window.onerror = function (message, source, lineno, colno, error) {
+        const enhancedInfo = getEnhancedInfo();
+        console.error("Caught an error:", { message, source, lineno, colno, error });
+        const errorMessage = ` There was an error with your code. Troubleshoot the error:
+            Error: ${message}
+            Source: ${source}
+            Line: ${lineno}
+            Column: ${colno}
+            Error Object: ${error ? error.stack : 'N/A'}
+            URL: ${enhancedInfo.url}
+            User Agent: ${enhancedInfo.userAgent}
+            Platform: ${enhancedInfo.platform}
+            Timestamp: ${enhancedInfo.timestamp}
+        `;
+        sendMessage(errorMessage.trim());  // Send the error message
+        errorCount++;
+        hadError = true;
+        return true; // Prevent default behavior
+    };
+
+    // Catch unhandled promise rejections
+    window.addEventListener('unhandledrejection', function (event) {
+        const enhancedInfo = getEnhancedInfo();
+    
+        // If the reason is an error object, try to get more details like the stack trace.
+        let reasonDetails;
+        if (event.reason instanceof Error) {
+            reasonDetails = event.reason.stack || event.reason.message;
+        } else {
+            reasonDetails = JSON.stringify(event.reason);
+        }
+    
+        const rejectionMessage = `
+            Unhandled Promise Rejection:
+            Reason: ${reasonDetails}
+            Promise: ${event.promise}  // The rejected promise object (reference)
+            URL: ${enhancedInfo.url}
+            User Agent: ${enhancedInfo.userAgent}
+            Platform: ${enhancedInfo.platform}
+            Timestamp: ${enhancedInfo.timestamp}
+        `;
+        
+        sendMessage(rejectionMessage.trim());
+        errorCount++;
+        hadError = true;
+        event.preventDefault(); // Optional: Prevent default behavior
+    });
 
 </script>
 </body>
