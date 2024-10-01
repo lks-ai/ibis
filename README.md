@@ -40,7 +40,9 @@ With over **30 years** of full-stack web development experience, I created _Ibis
 ## 🎥 Demo
 Check out our live demo to experience _Ibis_ in action!
 
-[![Watch the Demo Video](https://via.placeholder.com/800x450?text=Demo+Video+Placeholder)](https://www.youtube.com/) <!-- Placeholder for video embed -->
+[![Watch the Demo Video](https://img.youtube.com/vi/4WZ2NSpj8Mo/default.jpg
+)](https://www.youtube.com/watch?v=4WZ2NSpj8Mo)
+
 
 <!-- Example placeholder for GitHub video embed -->
 <!-- Replace the link with your actual video URL -->
