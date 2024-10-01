@@ -43,10 +43,7 @@ Check out our live demo to experience _Ibis_ in action!
 [![Watch the Demo Video](https://img.youtube.com/vi/4WZ2NSpj8Mo/default.jpg
 )](https://www.youtube.com/watch?v=4WZ2NSpj8Mo)
 
-
-<!-- Example placeholder for GitHub video embed -->
-<!-- Replace the link with your actual video URL -->
-[![Ibis Demo Video](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+### [Ibis Demo](https://lks-ai.github.io/ibis)
 
 ---
 
