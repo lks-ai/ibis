@@ -1,8 +1,17 @@
 # Ibis 🦜✨
 _Ibis_ is a **Hands-Free Multimedia Interface** powered by the latest generative AI technologies. Transform any webpage into an intuitive, voice-controlled interface with zero learning curve.
 
+![ibis-white-input](https://github.com/user-attachments/assets/dde9844c-eeb1-4f80-9599-bb63625bce28)
+
 [![License](https://img.shields.io/github/license/lks-ai/ibis)](LICENSE)
 [![Demo](https://img.shields.io/badge/Demo-Online-blue)](https://lks-ai.github.io/ibis)
+
+![Screenshot from 2024-09-26 10-59-37](https://github.com/user-attachments/assets/297ab38e-f9a3-4825-a0e7-ff4d1e355a84)
+
+![Screenshot from 2024-09-27 18-49-14](https://github.com/user-attachments/assets/7567e69c-2891-4d26-9686-e330efcab21c)
+
+![Screenshot from 2024-09-28 12-12-18](https://github.com/user-attachments/assets/9ab7946c-e2e3-4307-a5cf-4534b1d47ea8)
+
 
 ---
 
@@ -84,6 +93,25 @@ Check out our live demo to experience _Ibis_ in action!
 
 5. **Access Speech Feedback:**
     - Listen to real-time feedback and updates via the integrated speech synthesis.
+  
+---
+
+## More Screenies
+
+![Screenshot from 2024-09-28 13-00-36](https://github.com/user-attachments/assets/6dec2f83-2b41-4590-823e-49b0042d8f48)
+
+![Screenshot from 2024-09-28 13-11-11](https://github.com/user-attachments/assets/864cd542-5f15-4bd6-93b8-663ac1d6e695)
+
+![Screenshot from 2024-09-29 01-27-48](https://github.com/user-attachments/assets/bc19e397-3279-43b2-a23b-13f7a77ffa97)
+
+![Screenshot from 2024-09-29 01-38-03](https://github.com/user-attachments/assets/ebce1d7e-2604-4b11-9558-609492cba374)
+
+![Screenshot from 2024-09-30 02-11-18](https://github.com/user-attachments/assets/3769d80a-3ac2-41fb-ad27-3490d78bdaa2)
+
+![Screenshot from 2024-10-01 16-10-39](https://github.com/user-attachments/assets/a9d0132a-8db1-426b-bc1e-9d86938e4a88)
+
+![Screenshot from 2024-10-01 19-04-28](https://github.com/user-attachments/assets/ae1c9176-cb60-4ea3-8767-7219cea98f34)
+
 
 ---
 
