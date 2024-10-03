@@ -1,4 +1,4 @@
-# Ibis 🦜✨
+# Ibis
 _Ibis_ is a **Hands-Free Multimedia Interface** powered by the latest generative AI technologies. Transform any webpage into an intuitive, voice-controlled interface with zero learning curve.
 
 ![ibis-white-input](https://github.com/user-attachments/assets/dde9844c-eeb1-4f80-9599-bb63625bce28)
@@ -6,12 +6,7 @@ _Ibis_ is a **Hands-Free Multimedia Interface** powered by the latest generative
 [![License](https://img.shields.io/github/license/lks-ai/ibis)](LICENSE)
 [![Demo](https://img.shields.io/badge/Demo-Online-blue)](https://lks-ai.github.io/ibis)
 
-![Screenshot from 2024-09-26 10-59-37](https://github.com/user-attachments/assets/297ab38e-f9a3-4825-a0e7-ff4d1e355a84)
-
-![Screenshot from 2024-09-27 18-49-14](https://github.com/user-attachments/assets/7567e69c-2891-4d26-9686-e330efcab21c)
-
-![Screenshot from 2024-09-28 12-12-18](https://github.com/user-attachments/assets/9ab7946c-e2e3-4307-a5cf-4534b1d47ea8)
-
+[![Screenshot from 2024-10-03 01-19-12](https://github.com/user-attachments/assets/5ef093cb-7afa-4848-bfc6-e380905d892d)](https://lks-ai.github.io/ibis)
 
 ---
 
@@ -111,6 +106,12 @@ Check out our live demo to experience _Ibis_ in action!
 ![Screenshot from 2024-10-01 16-10-39](https://github.com/user-attachments/assets/a9d0132a-8db1-426b-bc1e-9d86938e4a88)
 
 ![Screenshot from 2024-10-01 19-04-28](https://github.com/user-attachments/assets/ae1c9176-cb60-4ea3-8767-7219cea98f34)
+
+![Screenshot from 2024-09-26 10-59-37](https://github.com/user-attachments/assets/297ab38e-f9a3-4825-a0e7-ff4d1e355a84)
+
+![Screenshot from 2024-09-27 18-49-14](https://github.com/user-attachments/assets/7567e69c-2891-4d26-9686-e330efcab21c)
+
+![Screenshot from 2024-09-28 12-12-18](https://github.com/user-attachments/assets/9ab7946c-e2e3-4307-a5cf-4534b1d47ea8)
 
 
 ---
