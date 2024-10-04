@@ -6,9 +6,6 @@ _Ibis_ is a **Hands-Free Multimedia Interface** powered by the latest generative
 [![License](https://img.shields.io/github/license/lks-ai/ibis)](LICENSE)
 [![Demo](https://img.shields.io/badge/Demo-Online-blue)](https://lks-ai.github.io/ibis)
 
-[![Screenshot from 2024-10-03 01-19-12](https://github.com/user-attachments/assets/5ef093cb-7afa-4848-bfc6-e380905d892d)](https://lks-ai.github.io/ibis)
-
-[Join our LK Studio Discord](https://discord.gg/xt5VAqfKUE)
 ---
 
 ## 📖 Table of Contents
